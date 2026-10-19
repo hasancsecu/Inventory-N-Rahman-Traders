@@ -1,0 +1,572 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+enum UserRole {
+  SUPER_ADMIN
+  AGENCY_MANAGER
+  STOREKEEPER
+  CASHIER
+}
+
+enum ViscosityGrade {
+  SAE_20W_50
+  SAE_15W_40
+  SAE_10W_30
+  SAE_5W_30
+  SAE_0W_20
+  HYDRAULIC_68
+  HYDRAULIC_46
+  GEAR_85W_140
+  GEAR_80W_90
+  ATF_DEXRON_III
+  OTHER
+}
+
+enum ApplicationSegment {
+  HEAVY_COMMERCIAL   // Bus, Truck, Tractor fleets
+  PASSENGER_CAR      // Private Sedan, SUV, Microbus
+  MOTORCYCLE_4T_2T   // Motorcycles, CNG 3-wheelers
+  INDUSTRIAL         // Generators, Plant Hydraulics, Turbines
+  MARINE             // Trawlers, Cargo Launches
+}
+
+enum PackagingType {
+  DRUM_205L          // 205 Liters industrial/fleet sealed drum
+  BUCKET_20L         // 20 Liters
+  BUCKET_18L         // 18 Liters commercial bucket
+  CAN_5L             // 5 Liters passenger car can
+  CAN_4L             // 4 Liters passenger car can
+  CAN_3L             // 3 Liters
+  BOTTLE_1L          // 1 Liter motorcycle / retail
+  BOTTLE_0_8L        // 0.8 Liter 4T motorcycle
+  LOOSE_LITER        // Decanted bulk loose liters for retail top-up
+}
+
+enum UnitOfMeasure {
+  LITERS
+  PIECES
+}
+
+enum VehicleTypeFocus {
+  BUS_FLEET
+  TRUCK_TRANSPORT
+  AUTO_WORKSHOP
+  RETAIL_SHOP
+  INDUSTRIAL_PLANT
+  INDIVIDUAL
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CHEQUE
+  BKASH
+  NAGAD
+}
+
+enum InvoiceStatus {
+  PAID
+  PARTIAL
+  DUE
+  CANCELLED
+}
+
+enum CustomerTransactionType {
+  INVOICE
+  PAYMENT_COLLECTION
+  SALES_RETURN
+  DEBIT_ADJUSTMENT
+  CREDIT_ADJUSTMENT
+  OPENING_BALANCE
+}
+
+enum SupplierTransactionType {
+  PURCHASE_BILL
+  PAYMENT
+  RETURN
+  ADJUSTMENT
+  OPENING_BALANCE
+}
+
+enum DocumentType {
+  INVOICE
+  CHALAN
+  MONEY_RECEIPT
+  PURCHASE_ORDER
+  DECANT_BATCH
+}
+
+enum POStatus {
+  DRAFT
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+// -----------------------------------------------------------------------------
+// MULTI-AGENCY & USER ACCESS MODELS
+// -----------------------------------------------------------------------------
+
+model Agency {
+  id              String   @id @default(cuid())
+  name            String   // e.g., "N Rahman Traders - Caltex Agency"
+  code            String   @unique // e.g., "CALTEX", "SHELL", "MOBIL", "TOTAL"
+  brandPrincipal  String   // e.g., "Chevron Bangladesh", "Shell (Navana/Rahimafrooz)"
+  tradeLicense    String   // e.g., "TRAD/DSCC/019283/2022"
+  binNo           String   // Business Identification Number (13-digit / 9-digit)
+  tinNo           String?  // Taxpayer Identification Number
+  address         String   // Registered office/depot address
+  district        String   @default("Dhaka")
+  phone           String
+  email           String?
+  officialHeader  String?  // Header print text/metadata
+  officialFooter  String?  // Terms, VAT note, declaration
+  
+  // Authorized Bank Accounts
+  bankName        String?
+  bankAccountName String?
+  bankAccountNo   String?
+  bankBranch      String?
+  bankRoutingNo   String?
+  
+  brandColor      String   @default("#0f766e") // Caltex Red, Shell Yellow, etc.
+  logoUrl         String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Scoped Relations
+  userAccess          UserAgencyAccess[]
+  products            Product[]
+  batches             InventoryBatch[]
+  invoices            Invoice[]
+  customerLedgers     CustomerLedger[]
+  suppliers           Supplier[]
+  supplierLedgers     SupplierLedger[]
+  purchaseOrders      PurchaseOrder[]
+  decantingLogs       BulkDecantingLog[]
+  documentSequences   DocumentSequence[]
+  liftingTargets      LiftingTarget[]
+
+  @@index([code])
+}
+
+model RoleDefinition {
+  id          String   @id @default(cuid())
+  name        String   @unique // System slug e.g. "SUPER_ADMIN", "STOREKEEPER", "AUDITOR"
+  title       String   // Display name e.g. "Agency Storekeeper & Decanter"
+  description String?
+  permissions String[] // Granular permission keys
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+
+  @@index([name])
+}
+
+model User {
+  id               String             @id @default(cuid())
+  name             String
+  email            String             @unique
+  passwordHash     String?
+  avatarUrl        String?
+  defaultAgencyId  String?
+  role             UserRole           @default(STOREKEEPER)
+  customRoleId     String?
+  customRole       RoleDefinition?    @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  // Multi-agency role mappings
+  agencyAccess     UserAgencyAccess[]
+  createdInvoices  Invoice[]
+  decantedLogs     BulkDecantingLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model UserAgencyAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  agencyId  String
+  role      UserRole @default(STOREKEEPER)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, agencyId])
+  @@index([userId])
+  @@index([agencyId])
+}
+
+// -----------------------------------------------------------------------------
+// PRODUCT & INVENTORY MODELS (SCOPED BY AGENCY)
+// -----------------------------------------------------------------------------
+
+model Product {
+  id                 String             @id @default(cuid())
+  agencyId           String
+  brand              String             // Caltex, Shell, Mobil, TotalEnergies
+  name               String             // e.g., "Delo 400 MGX", "Rimula R4 X"
+  sku                String             // Scoped SKU, e.g. "CTX-D400-205L"
+  barcode            String?
+  viscosityGrade     ViscosityGrade     // SAE 15W-40, 20W-50, etc.
+  applicationSegment ApplicationSegment // Heavy Commercial, Passenger, etc.
+  packaging          PackagingType      // Drum 205L, Bucket 18L, etc.
+  uom                UnitOfMeasure      // LITERS or PIECES
+  litersPerUnit      Float              // 205.0 for Drum, 18.0 for Bucket, 1.0 for loose
+  minAlertStock      Float              @default(5)
+  isDecantable       Boolean            @default(false) // Can be split into loose liters
+  isLoose            Boolean            @default(false) // Decanted bulk loose product
+  description        String?
+  isActive           Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  agency             Agency             @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  batches            InventoryBatch[]
+  invoiceItems       InvoiceItem[]
+  poItems            PurchaseOrderItem[]
+  
+  // Decanting Relations
+  sourceDecantLogs   BulkDecantingLog[] @relation("SourceProduct")
+  targetDecantLogs   BulkDecantingLog[] @relation("TargetProduct")
+
+  @@unique([agencyId, sku])
+  @@index([agencyId, brand])
+  @@index([viscosityGrade])
+  @@index([applicationSegment])
+  @@index([packaging])
+}
+
+model InventoryBatch {
+  id              String            @id @default(cuid())
+  agencyId        String
+  productId       String
+  batchNumber     String            // e.g. "B2026-03A"
+  purchaseRate    Float             // Cost price for FIFO Gross Profit calculation
+  tradePrice      Float             // TP (Dealer wholesale price)
+  mrp             Float             // Maximum Retail Price
+  stockQuantity   Float             // Available quantity (Pcs or Liters for loose)
+  initialQuantity Float
+  minAlertStock   Float             @default(5)
+  expiryDate      DateTime?
+  receivedDate    DateTime          @default(now())
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  agency          Agency            @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  product         Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  invoiceItems    InvoiceItem[]
+  poItems         PurchaseOrderItem[]
+
+  // Decanting Relations
+  sourceDecants   BulkDecantingLog[] @relation("SourceBatch")
+  targetDecants   BulkDecantingLog[] @relation("TargetBatch")
+
+  @@unique([agencyId, productId, batchNumber])
+  @@index([agencyId, stockQuantity])
+  @@index([productId])
+  @@index([batchNumber])
+}
+
+// -----------------------------------------------------------------------------
+// BULK DECANTING LOG (DRUM 205L TO LOOSE LITERS)
+// -----------------------------------------------------------------------------
+
+model BulkDecantingLog {
+  id               String          @id @default(cuid())
+  agencyId         String
+  sourceProductId  String
+  sourceBatchId    String
+  sourceDrumsCount Float           // e.g., 2 sealed drums
+  drumCapacityLtr  Float           @default(205.0)
+  targetProductId  String          // Loose oil product profile
+  targetBatchId    String          // Loose oil batch
+  litersYielded    Float           // e.g., 410.0 loose liters
+  costBasisPerLtr  Float           // FIFO cost allocated per liter
+  notes            String?
+  decantedById     String?
+  createdAt        DateTime        @default(now())
+
+  agency           Agency          @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  sourceProduct    Product         @relation("SourceProduct", fields: [sourceProductId], references: [id], onDelete: Restrict)
+  sourceBatch      InventoryBatch  @relation("SourceBatch", fields: [sourceBatchId], references: [id], onDelete: Restrict)
+  targetProduct    Product         @relation("TargetProduct", fields: [targetProductId], references: [id], onDelete: Restrict)
+  targetBatch      InventoryBatch  @relation("TargetBatch", fields: [targetBatchId], references: [id], onDelete: Restrict)
+  decantedBy       User?           @relation(fields: [decantedById], references: [id], onDelete: SetNull)
+
+  @@index([agencyId, createdAt])
+}
+
+// -----------------------------------------------------------------------------
+// CUSTOMER & UNIFIED / SCOPED KHATA (LEDGER)
+// -----------------------------------------------------------------------------
+
+model Customer {
+  id                String           @id @default(cuid())
+  name              String           // e.g., "M/S Hanif Enterprise Bus Depot"
+  proprietor        String?          // Contact Owner / Manager
+  phone             String           // Unique identifier for fleet credit tracking
+  secondaryPhone    String?
+  address           String
+  district          String           @default("Dhaka")
+  vehicleTypeFocus  VehicleTypeFocus @default(BUS_FLEET)
+  totalCreditLimit  Float            @default(0.0) // Master aggregate credit limit across all dealerships
+  currentDue        Float            @default(0.0) // Cached aggregate due
+  binNo             String?
+  tradeLicense      String?
+  notes             String?
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  invoices          Invoice[]
+  ledgers           CustomerLedger[]
+
+  @@index([phone])
+  @@index([district])
+  @@index([currentDue])
+}
+
+model CustomerLedger {
+  id              String                  @id @default(cuid())
+  customerId      String
+  agencyId        String                  // Scoped per authorized dealership
+  transactionType CustomerTransactionType
+  debit           Float                   @default(0.0) // Invoiced due additions
+  credit          Float                   @default(0.0) // Cash / Bank collections
+  runningBalance  Float                   // Running balance under this specific agency
+  referenceId     String?                 // Invoice ID, Payment Receipt ID, etc.
+  referenceNumber String?                 // Scoped invoice/receipt code e.g. "CTX-2026-0012"
+  paymentMethod   PaymentMethod?
+  bankName        String?
+  chequeNo        String?
+  notes           String?
+  createdAt       DateTime                @default(now())
+
+  customer        Customer                @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  agency          Agency                  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, agencyId, createdAt])
+  @@index([agencyId, createdAt])
+  @@index([referenceId])
+}
+
+// -----------------------------------------------------------------------------
+// POS INVOICE & CHALAN MODELS
+// -----------------------------------------------------------------------------
+
+model Invoice {
+  id              String        @id @default(cuid())
+  agencyId        String
+  invoiceNo       String        // e.g., "CTX-2026-0012"
+  chalanNo        String        // e.g., "CTX-CH-2026-0012"
+  customerId      String
+  creatorId       String?
+  subtotal        Float
+  discount        Float         @default(0.0)
+  vatAmount       Float         @default(0.0)
+  totalAmount     Float         // (Subtotal - Discount) + VAT
+  paidAmount      Float         @default(0.0)
+  dueAmount       Float         @default(0.0)
+  paymentMethod   PaymentMethod @default(CASH)
+  status          InvoiceStatus @default(DUE)
+  
+  // Delivery & Logistics Metadata
+  driverName      String?
+  vehicleNumber   String?       // e.g., "Dhaka Metro-Ta 11-4567"
+  deliveryAddress String?
+  salesDate       DateTime      @default(now())
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  agency          Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  creator         User?         @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  items           InvoiceItem[]
+
+  @@unique([agencyId, invoiceNo])
+  @@unique([agencyId, chalanNo])
+  @@index([agencyId, salesDate])
+  @@index([customerId])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id          String         @id @default(cuid())
+  invoiceId   String
+  productId   String
+  batchId     String
+  quantity    Float          // Number of drums/buckets/loose liters sold
+  packaging   PackagingType
+  uom         UnitOfMeasure
+  unitLiters  Float          // 205.0, 18.0, 4.0, 1.0, etc.
+  totalLiters Float          // quantity * unitLiters (for lifting analytics)
+  unitRate    Float          // Selling Price per unit
+  costRate    Float          // FIFO purchase cost per unit
+  grossMargin Float          // (unitRate - costRate) * quantity
+  lineTotal   Float          // quantity * unitRate
+  createdAt   DateTime       @default(now())
+
+  invoice     Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  batch       InventoryBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@index([productId])
+  @@index([batchId])
+}
+
+// -----------------------------------------------------------------------------
+// SUPPLIER & PRINCIPAL LEDGER
+// -----------------------------------------------------------------------------
+
+model Supplier {
+  id             String                  @id @default(cuid())
+  agencyId       String
+  name           String                  // e.g. "Chevron Bangladesh Block / Caltex Office"
+  code           String                  // e.g. "CHEVRON-BD"
+  contactPerson  String?
+  phone          String
+  email          String?
+  address        String
+  currentBalance Float                   @default(0.0) // Payable balance to principal
+  isActive       Boolean                 @default(true)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  agency         Agency                  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  ledgers        SupplierLedger[]
+  purchaseOrders PurchaseOrder[]
+
+  @@unique([agencyId, code])
+  @@index([agencyId])
+}
+
+model SupplierLedger {
+  id              String                  @id @default(cuid())
+  supplierId      String
+  agencyId        String
+  transactionType SupplierTransactionType
+  debit           Float                   @default(0.0) // Payment made to principal
+  credit          Float                   @default(0.0) // Invoiced purchase liability
+  runningBalance  Float
+  referenceId     String?
+  referenceNumber String?
+  paymentMethod   PaymentMethod?
+  notes           String?
+  createdAt       DateTime                @default(now())
+
+  supplier        Supplier                @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  agency          Agency                  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId, agencyId, createdAt])
+  @@index([agencyId, createdAt])
+}
+
+// -----------------------------------------------------------------------------
+// PURCHASE ORDERS
+// -----------------------------------------------------------------------------
+
+model PurchaseOrder {
+  id           String              @id @default(cuid())
+  agencyId     String
+  supplierId   String
+  poNumber     String
+  totalAmount  Float
+  status       POStatus            @default(DRAFT)
+  orderedDate  DateTime            @default(now())
+  receivedDate DateTime?
+  notes        String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  agency       Agency              @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  supplier     Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  items        PurchaseOrderItem[]
+
+  @@unique([agencyId, poNumber])
+  @@index([agencyId, orderedDate])
+}
+
+model PurchaseOrderItem {
+  id              String          @id @default(cuid())
+  purchaseOrderId String
+  productId       String
+  batchId         String?
+  orderedQty      Float
+  receivedQty     Float           @default(0.0)
+  unitCost        Float
+  totalCost       Float
+  createdAt       DateTime        @default(now())
+
+  purchaseOrder   PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  batch           InventoryBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  @@index([purchaseOrderId])
+  @@index([productId])
+}
+
+// -----------------------------------------------------------------------------
+// SCOPED SEQUENTIAL DOCUMENT COUNTER
+// -----------------------------------------------------------------------------
+
+model DocumentSequence {
+  id            String       @id @default(cuid())
+  agencyId      String
+  documentType  DocumentType // INVOICE, CHALAN, MONEY_RECEIPT
+  year          Int          // e.g. 2026
+  prefix        String       // e.g. "CTX", "SHL", "MBL", "TOT"
+  currentNumber Int          @default(0)
+  updatedAt     DateTime     @updatedAt
+
+  agency        Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@unique([agencyId, documentType, year])
+  @@index([agencyId, documentType])
+}
+
+// -----------------------------------------------------------------------------
+// PRINCIPAL LIFTING TARGETS & PERFORMANCE
+// -----------------------------------------------------------------------------
+
+model LiftingTarget {
+  id                   String   @id @default(cuid())
+  agencyId             String
+  month                Int      // 1-12
+  year                 Int      // 2026
+  targetVolumeLiters   Float    // Target set by Chevron/Shell (e.g., 25,000 Liters)
+  achievedVolumeLiters Float    @default(0.0)
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  agency               Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@unique([agencyId, month, year])
+  @@index([agencyId, year, month])
+}
