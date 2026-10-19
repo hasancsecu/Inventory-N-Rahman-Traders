@@ -18,19 +18,24 @@ import {
   Database,
   Shield,
 } from "lucide-react";
+import { redirect } from "next/navigation";
 import { getActiveAgency, getAllAgencies } from "@/actions/agency";
 import { getDashboardAnalytics } from "@/actions/analytics";
 import { getCurrentUser } from "@/lib/auth";
-import { getStoredProducts, getStoredInvoices } from "@/lib/backend-store";
+import { getDbProducts, getDbInvoices } from "@/lib/db-service";
 
 export default async function DashboardPage() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    redirect("/login");
+  }
+
   const currentAgency = await getActiveAgency();
   const agencies = await getAllAgencies();
   const analytics = await getDashboardAnalytics(currentAgency?.id);
-  const currentUser = await getCurrentUser();
 
-  const activeProducts = getStoredProducts(currentAgency?.id);
-  const recentInvoices = getStoredInvoices(currentAgency?.id).slice(0, 8);
+  const activeProducts = await getDbProducts(currentAgency?.id);
+  const recentInvoices = (await getDbInvoices(currentAgency?.id)).slice(0, 8);
 
   const lowStockBatches = activeProducts.flatMap((p) =>
     (p.batches || []).filter(

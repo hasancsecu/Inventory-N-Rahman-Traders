@@ -1,10 +1,10 @@
 import { getActiveAgency } from '@/actions/agency'
 import {
-  getStoredInvoiceById,
-  getStoredInvoices,
-  getStoredAgencyById,
-  getStoredAgencies,
-} from '@/lib/backend-store'
+  getDbInvoiceById,
+  getDbInvoices,
+  getDbAgencyById,
+  getDbAgencies,
+} from '@/lib/db-service'
 import { Printer, ArrowLeft, ShieldCheck, Truck, Droplet } from 'lucide-react'
 import Link from 'next/link'
 
@@ -15,11 +15,11 @@ export default async function InvoicePrintPage({
 }) {
   const { id } = await params
   const activeAgency = await getActiveAgency()
-  const invoice = getStoredInvoiceById(id) || getStoredInvoices()[0]
+  const invoice = (await getDbInvoiceById(id)) || (await getDbInvoices())[0]
   const agency =
-    (invoice ? getStoredAgencyById(invoice.agencyId) : null) ||
+    (invoice ? await getDbAgencyById(invoice.agencyId) : null) ||
     activeAgency ||
-    getStoredAgencies()[0]
+    (await getDbAgencies())[0]
 
   if (!invoice || !agency) {
     return (

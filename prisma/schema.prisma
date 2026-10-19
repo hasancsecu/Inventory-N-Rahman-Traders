@@ -230,9 +230,9 @@ model Product {
   name               String             // e.g., "Delo 400 MGX", "Rimula R4 X"
   sku                String             // Scoped SKU, e.g. "CTX-D400-205L"
   barcode            String?
-  viscosityGrade     ViscosityGrade     // SAE 15W-40, 20W-50, etc.
+  viscosityGrade     String             // e.g. SAE 15W-40, 20W-50, or custom grade
   applicationSegment ApplicationSegment // Heavy Commercial, Passenger, etc.
-  packaging          PackagingType      // Drum 205L, Bucket 18L, etc.
+  packaging          String             // e.g. Drum 205L, Can 4L, or custom packaging
   uom                UnitOfMeasure      // LITERS or PIECES
   litersPerUnit      Float              // 205.0 for Drum, 18.0 for Bucket, 1.0 for loose
   minAlertStock      Float              @default(5)
@@ -264,6 +264,8 @@ model InventoryBatch {
   agencyId        String
   productId       String
   batchNumber     String            // e.g. "B2026-03A"
+  supplierId      String?
+  poNumber        String?
   purchaseRate    Float             // Cost price for FIFO Gross Profit calculation
   tradePrice      Float             // TP (Dealer wholesale price)
   mrp             Float             // Maximum Retail Price
@@ -278,6 +280,7 @@ model InventoryBatch {
 
   agency          Agency            @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   product         Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier        Supplier?         @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   invoiceItems    InvoiceItem[]
   poItems         PurchaseOrderItem[]
 
@@ -289,6 +292,7 @@ model InventoryBatch {
   @@index([agencyId, stockQuantity])
   @@index([productId])
   @@index([batchNumber])
+  @@index([supplierId])
 }
 
 // -----------------------------------------------------------------------------
@@ -421,7 +425,7 @@ model InvoiceItem {
   productId   String
   batchId     String
   quantity    Float          // Number of drums/buckets/loose liters sold
-  packaging   PackagingType
+  packaging   String
   uom         UnitOfMeasure
   unitLiters  Float          // 205.0, 18.0, 4.0, 1.0, etc.
   totalLiters Float          // quantity * unitLiters (for lifting analytics)
@@ -459,6 +463,7 @@ model Supplier {
   updatedAt      DateTime                @updatedAt
 
   agency         Agency                  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  batches        InventoryBatch[]
   ledgers        SupplierLedger[]
   purchaseOrders PurchaseOrder[]
 
@@ -570,3 +575,46 @@ model LiftingTarget {
   @@unique([agencyId, month, year])
   @@index([agencyId, year, month])
 }
+
+// -----------------------------------------------------------------------------
+// DYNAMIC MASTER CATALOG (BRANDS, VISCOSITIES, PACKAGING)
+// -----------------------------------------------------------------------------
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  country     String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+model ViscosityMaster {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([code])
+}
+
+model PackagingMaster {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  defaultLiters Float
+  uom           String   @default("PIECES")
+  description   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([code])
+}
+

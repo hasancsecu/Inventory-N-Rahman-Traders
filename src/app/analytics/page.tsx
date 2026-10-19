@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getActiveAgency, getAllAgencies } from "@/actions/agency";
 import { getFullAnalytics } from "@/actions/analytics";
 import { getCurrentUser } from "@/lib/auth";
@@ -10,9 +11,13 @@ export const metadata = {
 };
 
 export default async function AnalyticsPage() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    redirect("/login");
+  }
+
   const currentAgency = await getActiveAgency();
   const agencies = await getAllAgencies();
-  const currentUser = await getCurrentUser();
 
   const now = new Date();
   const initialAnalytics = await getFullAnalytics({
@@ -33,4 +38,3 @@ export default async function AnalyticsPage() {
     </div>
   );
 }
-

@@ -1,5 +1,4 @@
 import { getCurrentUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import {
   getMasterDataStats,
   getMasterAgencies,
@@ -12,6 +11,7 @@ import {
   getMasterViscosityGrades,
   getMasterPackagingTypes,
 } from "@/actions/master-data";
+import { redirect } from "next/navigation";
 import { MasterDataClient } from "./master-data-client";
 import { Crown, ShieldAlert } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +24,9 @@ export const metadata = {
 
 export default async function MasterDataPage() {
   const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    redirect("/login");
+  }
 
   if (currentUser.role !== "SUPER_ADMIN") {
     return (

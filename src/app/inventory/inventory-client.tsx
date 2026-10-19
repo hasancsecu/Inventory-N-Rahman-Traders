@@ -29,6 +29,7 @@ import { AgencySummary } from '@/actions/agency'
 import { AuthUser } from '@/lib/auth-types'
 import { createMasterBatch, getPaginatedInventoryAction } from '@/actions/master-data'
 import { Pagination } from '@/components/ui/pagination'
+import { cleanNumericString, handleNumericFocus } from '@/components/ui/number-input'
 
 interface InventoryClientProps {
   currentAgency: AgencySummary | null
@@ -742,7 +743,12 @@ export function InventoryClient({
                       step="any"
                       placeholder="e.g. 50"
                       value={stockQuantity}
-                      onChange={(e) => setStockQuantity(e.target.value)}
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        const cleaned = cleanNumericString(e.target.value)
+                        e.target.value = cleaned
+                        setStockQuantity(cleaned)
+                      }}
                       className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-mono text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -759,7 +765,12 @@ export function InventoryClient({
                       step="any"
                       placeholder="e.g. 850"
                       value={purchaseRate}
-                      onChange={(e) => setPurchaseRate(e.target.value)}
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        const cleaned = cleanNumericString(e.target.value)
+                        e.target.value = cleaned
+                        setPurchaseRate(cleaned)
+                      }}
                       className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-mono text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -776,7 +787,12 @@ export function InventoryClient({
                       step="any"
                       placeholder="e.g. 1000"
                       value={tradePrice}
-                      onChange={(e) => setTradePrice(e.target.value)}
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        const cleaned = cleanNumericString(e.target.value)
+                        e.target.value = cleaned
+                        setTradePrice(cleaned)
+                      }}
                       className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-mono text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -792,7 +808,12 @@ export function InventoryClient({
                       step="any"
                       placeholder="e.g. 1100"
                       value={mrp}
-                      onChange={(e) => setMrp(e.target.value)}
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        const cleaned = cleanNumericString(e.target.value)
+                        e.target.value = cleaned
+                        setMrp(cleaned)
+                      }}
                       className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-mono text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -820,7 +841,12 @@ export function InventoryClient({
                       type="number"
                       min="1"
                       value={minAlertStock}
-                      onChange={(e) => setMinAlertStock(e.target.value)}
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        const cleaned = cleanNumericString(e.target.value)
+                        e.target.value = cleaned
+                        setMinAlertStock(cleaned)
+                      }}
                       className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-mono text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>

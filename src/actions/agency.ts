@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { getStoredAgencies, getStoredAgencyById } from '@/lib/backend-store'
+import { getDbAgencyById } from '@/lib/db-service'
 
 const ACTIVE_AGENCY_COOKIE = 'lubricant_active_agency_id'
 
@@ -89,8 +90,8 @@ export async function getAllAgencies(): Promise<AgencySummary[]> {
  * Switches the active agency in the session cookie and revalidates all paths
  */
 export async function switchActiveAgency(agencyId: string) {
-  // Verify agency exists in backend
-  const agency = getStoredAgencyById(agencyId)
+  // Verify agency exists in database or backend
+  const agency = (await getDbAgencyById(agencyId)) || getStoredAgencyById(agencyId)
   if (!agency) {
     return { success: false, error: 'Agency not found.' }
   }

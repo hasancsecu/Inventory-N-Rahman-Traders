@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { PaymentMethod } from '@prisma/client'
+import { PaymentMethod, InvoiceStatus } from '@prisma/client'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import {
@@ -27,9 +27,9 @@ export type CollectDueInput = z.infer<typeof CollectDueSchema>
  * 
  * Collects due and records payment credit in the specific dealership ledger:
  * 1. Decrements customer aggregate due.
- * 2. Fetches latest running balance for this customer under the dealership.
- * 3. Records a CREDIT entry in CustomerLedger with new running balance.
- * 4. Settles outstanding agency invoices in FIFO order.
+ * 2. Settles outstanding customer invoices in FIFO order (matching agency prioritized).
+ * 3. Fetches latest running balance for this customer under the dealership.
+ * 4. Records a CREDIT entry in CustomerLedger with new running balance.
  */
 export async function collectCustomerPayment(rawInput: CollectDueInput) {
   try {
@@ -58,6 +58,65 @@ export async function collectCustomerPayment(rawInput: CollectDueInput) {
             currentDue: { decrement: amount },
           },
         })
+
+        // Settle outstanding customer invoices in FIFO order
+        const candidateInvoices = await tx.invoice.findMany({
+          where: {
+            customerId,
+            dueAmount: { gt: 0 },
+            status: { not: InvoiceStatus.CANCELLED },
+          },
+          include: {
+            agency: true,
+          },
+          orderBy: { salesDate: 'asc' },
+        })
+
+        // Prioritize invoices for this agency first, then FIFO by salesDate
+        candidateInvoices.sort((a, b) => {
+          if (a.agencyId === agencyId && b.agencyId !== agencyId) return -1
+          if (a.agencyId !== agencyId && b.agencyId === agencyId) return 1
+          return new Date(a.salesDate).getTime() - new Date(b.salesDate).getTime()
+        })
+
+        let remainingAllocation = amount
+        const settledInvoices: Array<{
+          id: string
+          invoiceNo: string
+          agencyCode: string
+          settledAmount: number
+          newPaid: number
+          newDue: number
+          status: string
+        }> = []
+
+        for (const inv of candidateInvoices) {
+          if (remainingAllocation <= 0) break
+          const settleAmount = Math.min(inv.dueAmount, remainingAllocation)
+          const newDue = Math.max(0, inv.dueAmount - settleAmount)
+          const newPaid = inv.paidAmount + settleAmount
+          const newStatus = newDue <= 0 ? InvoiceStatus.PAID : InvoiceStatus.PARTIAL
+
+          await tx.invoice.update({
+            where: { id: inv.id },
+            data: {
+              paidAmount: newPaid,
+              dueAmount: newDue,
+              status: newStatus,
+            },
+          })
+
+          remainingAllocation -= settleAmount
+          settledInvoices.push({
+            id: inv.id,
+            invoiceNo: inv.invoiceNo,
+            agencyCode: inv.agency?.code || 'CTX',
+            settledAmount: settleAmount,
+            newPaid,
+            newDue,
+            status: newStatus,
+          })
+        }
 
         // Fetch last agency-specific running balance
         const lastLedger = await tx.customerLedger.findFirst({
@@ -115,12 +174,28 @@ export async function collectCustomerPayment(rawInput: CollectDueInput) {
           customerName: customer.name,
           newAgencyBalance: newRunningBalance,
           ledgerId: ledgerEntry.id,
+          settledInvoices,
         }
       })
 
+      // Dual-sync to local persistent store for offline/fallback consistency
+      try {
+        recordStoredCustomerPayment({
+          customerId,
+          agencyId,
+          amount,
+          paymentMethod,
+          bankName,
+          chequeNo,
+          notes,
+        })
+      } catch {}
+
       revalidatePath('/khata')
+      revalidatePath('/admin/master-data')
+      revalidatePath('/pos')
       revalidatePath('/')
-      return { success: true, ...result }
+      return { success: true as const, ...result }
     } catch (dbErr) {
       // Fallback to Persistent Backend Store
       const entry = recordStoredCustomerPayment({
@@ -134,21 +209,24 @@ export async function collectCustomerPayment(rawInput: CollectDueInput) {
       })
 
       revalidatePath('/khata')
+      revalidatePath('/admin/master-data')
+      revalidatePath('/pos')
       revalidatePath('/')
 
       return {
-        success: true,
+        success: true as const,
         receiptNumber: entry.referenceNumber,
         collectedAmount: amount,
         customerName: 'Customer',
         newAgencyBalance: entry.runningBalance,
         ledgerId: entry.id,
+        settledInvoices: entry.settledInvoices || [],
       }
     }
   } catch (error: any) {
     console.error('Payment Collection Error:', error)
     return {
-      success: false,
+      success: false as const,
       error: error?.message || 'Payment collection failed.',
     }
   }

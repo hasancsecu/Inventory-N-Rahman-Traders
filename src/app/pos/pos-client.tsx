@@ -19,8 +19,9 @@ import {
 } from "lucide-react";
 import { createDealershipInvoice } from "@/actions/invoice";
 import { AgencySummary } from "@/actions/agency";
-import { PackagingType, UnitOfMeasure, PaymentMethod } from "@prisma/client";
+import { UnitOfMeasure, PaymentMethod } from "@prisma/client";
 import { AuthUser } from "@/lib/auth-types";
+import { cleanNumericString, handleNumericFocus } from "@/components/ui/number-input";
 import Link from "next/link";
 
 interface PosClientProps {
@@ -37,7 +38,7 @@ interface CartItem {
   batchId: string;
   batchNumber: string;
   quantity: number;
-  packaging: PackagingType;
+  packaging: string;
   uom: UnitOfMeasure;
   unitLiters: number;
   totalLiters: number;
@@ -90,8 +91,8 @@ export function PosClient({
     (b: any) => b.id === selectedBatchId,
   );
 
-  const [quantity, setQuantity] = React.useState<number>(1);
-  const [unitRate, setUnitRate] = React.useState<number>(
+  const [quantity, setQuantity] = React.useState<number | string>(1);
+  const [unitRate, setUnitRate] = React.useState<number | string>(
     selectedBatch?.tradePrice || 0,
   );
 
@@ -105,9 +106,9 @@ export function PosClient({
   const [cartItems, setCartItems] = React.useState<CartItem[]>([]);
 
   // Financials & Payment
-  const [discount, setDiscount] = React.useState<number>(0);
+  const [discount, setDiscount] = React.useState<number | string>(0);
   const [vatAmount, setVatAmount] = React.useState<number>(0);
-  const [paidAmount, setPaidAmount] = React.useState<number>(0);
+  const [paidAmount, setPaidAmount] = React.useState<number | string>(0);
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>(
     PaymentMethod.CASH,
   );
@@ -133,8 +134,10 @@ export function PosClient({
     (acc, item) => acc + item.totalLiters,
     0,
   );
-  const totalAmount = Math.max(0, subtotal - discount + vatAmount);
-  const dueAmount = Math.max(0, totalAmount - paidAmount);
+  const numDiscount = Number(discount) || 0;
+  const numPaid = Number(paidAmount) || 0;
+  const totalAmount = Math.max(0, subtotal - numDiscount + vatAmount);
+  const dueAmount = Math.max(0, totalAmount - numPaid);
 
   // Credit Risk Check
   const currentCustomerDue = selectedCustomer?.currentDue || 0;
@@ -148,12 +151,15 @@ export function PosClient({
   const handleAddItem = () => {
     if (!selectedProduct || !selectedBatch) return;
 
-    if (quantity <= 0) {
+    const numQty = Number(quantity) || 0;
+    const numRate = Number(unitRate) || 0;
+
+    if (numQty <= 0) {
       alert("Quantity must be greater than zero");
       return;
     }
 
-    if (quantity > selectedBatch.stockQuantity) {
+    if (numQty > selectedBatch.stockQuantity) {
       alert(
         `Insufficient stock! Available in batch: ${selectedBatch.stockQuantity}`,
       );
@@ -165,13 +171,13 @@ export function PosClient({
       productName: selectedProduct.name,
       batchId: selectedBatch.id,
       batchNumber: selectedBatch.batchNumber,
-      quantity,
+      quantity: numQty,
       packaging: selectedProduct.packaging,
       uom: selectedProduct.uom,
       unitLiters: selectedProduct.litersPerUnit,
-      totalLiters: quantity * selectedProduct.litersPerUnit,
-      unitRate,
-      lineTotal: quantity * unitRate,
+      totalLiters: numQty * selectedProduct.litersPerUnit,
+      unitRate: numRate,
+      lineTotal: numQty * numRate,
       availableStock: selectedBatch.stockQuantity,
     };
 
@@ -210,9 +216,9 @@ export function PosClient({
       const res = await createDealershipInvoice({
         agencyId: currentAgency.id,
         customerId: selectedCustomerId,
-        discount,
+        discount: Number(discount) || 0,
         vatAmount,
-        paidAmount,
+        paidAmount: Number(paidAmount) || 0,
         paymentMethod,
         driverName,
         vehicleNumber,
@@ -380,7 +386,16 @@ export function PosClient({
                   min="1"
                   max={selectedBatch?.stockQuantity || 999}
                   value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  placeholder="1"
+                  onFocus={handleNumericFocus}
+                  onChange={(e) => {
+                    const cleaned = cleanNumericString(e.target.value)
+                    e.target.value = cleaned
+                    setQuantity(cleaned === '' ? '' : Number(cleaned))
+                  }}
+                  onBlur={() => {
+                    if (!quantity || Number(quantity) < 1) setQuantity(1)
+                  }}
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100"
                 />
               </div>
@@ -392,7 +407,16 @@ export function PosClient({
                 <input
                   type="number"
                   value={unitRate}
-                  onChange={(e) => setUnitRate(Number(e.target.value))}
+                  placeholder="0"
+                  onFocus={handleNumericFocus}
+                  onChange={(e) => {
+                    const cleaned = cleanNumericString(e.target.value)
+                    e.target.value = cleaned
+                    setUnitRate(cleaned === '' ? '' : Number(cleaned))
+                  }}
+                  onBlur={() => {
+                    if (unitRate === '') setUnitRate(0)
+                  }}
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100"
                 />
               </div>
@@ -404,7 +428,7 @@ export function PosClient({
                 <div className="px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-sm font-mono font-bold text-zinc-700 dark:text-zinc-300">
                   {selectedProduct
                     ? (
-                        quantity * selectedProduct.litersPerUnit
+                        (Number(quantity) || 0) * selectedProduct.litersPerUnit
                       ).toLocaleString()
                     : 0}{" "}
                   L
@@ -684,8 +708,17 @@ export function PosClient({
                   <span>৳</span>
                   <input
                     type="number"
-                    value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
+                    value={discount === 0 ? '' : discount}
+                    placeholder="0"
+                    onFocus={handleNumericFocus}
+                    onChange={(e) => {
+                      const cleaned = cleanNumericString(e.target.value)
+                      e.target.value = cleaned
+                      setDiscount(cleaned === '' ? '' : Number(cleaned))
+                    }}
+                    onBlur={() => {
+                      if (discount === '') setDiscount(0)
+                    }}
                     className="w-24 px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-right font-mono font-bold text-xs"
                   />
                 </div>
@@ -713,8 +746,17 @@ export function PosClient({
                   </span>
                   <input
                     type="number"
-                    value={paidAmount}
-                    onChange={(e) => setPaidAmount(Number(e.target.value))}
+                    value={paidAmount === 0 ? '' : paidAmount}
+                    placeholder="0"
+                    onFocus={handleNumericFocus}
+                    onChange={(e) => {
+                      const cleaned = cleanNumericString(e.target.value)
+                      e.target.value = cleaned
+                      setPaidAmount(cleaned === '' ? '' : Number(cleaned))
+                    }}
+                    onBlur={() => {
+                      if (paidAmount === '') setPaidAmount(0)
+                    }}
                     className="w-full pl-7 pr-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400"
                   />
                 </div>

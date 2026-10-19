@@ -1,19 +1,18 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import {
-  getStoredUsers,
-  getStoredRoles,
-  saveStoredUser,
-  saveStoredRole,
-  toggleStoredUserStatus,
-  StoredUser,
-  StoredRole,
-} from '@/lib/backend-store'
+  getDbUsers,
+  getDbRoles,
+  saveDbUser,
+  saveDbRole,
+  toggleDbUserStatus,
+  getPaginatedDbUsers,
+} from '@/lib/db-service'
+import { StoredUser, StoredRole } from '@/lib/backend-store'
 
 const CreateUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -37,84 +36,22 @@ const CreateRoleSchema = z.object({
 export async function getUsersList() {
   const currentUser = await getCurrentUser()
   if (
-    currentUser.role !== UserRole.SUPER_ADMIN &&
-    !currentUser.permissions.includes('admin:manage_users') &&
-    !currentUser.permissions.includes('*')
+    !currentUser ||
+    (currentUser.role !== UserRole.SUPER_ADMIN &&
+      !currentUser.permissions.includes('admin:manage_users') &&
+      !currentUser.permissions.includes('*'))
   ) {
     throw new Error('Access Denied: Only Super Admin can manage users.')
   }
 
-  // 1. Try Prisma if reachable
-  try {
-    const users = await prisma.user.findMany({
-      include: {
-        agencyAccess: {
-          include: { agency: true },
-        },
-        customRole: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-
-    if (users.length > 0) {
-      return users.map((u) => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        roleTitle: u.customRole?.title || u.role,
-        customRoleId: u.customRoleId,
-        defaultAgencyId: u.defaultAgencyId || '',
-        allowedAgencyIds: u.agencyAccess.map((a) => a.agencyId),
-        agencies: u.agencyAccess.map((a) => ({
-          id: a.agency.id,
-          code: a.agency.code,
-          name: a.agency.name,
-        })),
-        isActive: u.isActive,
-      }))
-    }
-  } catch {}
-
-  // 2. Persistent Backend Store
-  return getStoredUsers().map((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role,
-    roleTitle: u.roleTitle,
-    allowedAgencyIds: u.allowedAgencyIds,
-    isActive: u.isActive,
-  }))
+  return getDbUsers()
 }
 
 /**
  * Fetch available roles and permissions
  */
 export async function getRolesList() {
-  try {
-    const roles = await prisma.roleDefinition.findMany({
-      include: {
-        users: { select: { id: true } },
-      },
-      orderBy: { name: 'asc' },
-    })
-
-    if (roles.length > 0) {
-      return roles.map((r) => ({
-        id: r.id,
-        name: r.name,
-        title: r.title,
-        description: r.description,
-        permissions: r.permissions,
-        isSystem: r.isSystem,
-        userCount: r.users.length,
-      }))
-    }
-  } catch {}
-
-  // Persistent Backend Store
-  return getStoredRoles()
+  return getDbRoles()
 }
 
 /**
@@ -126,16 +63,17 @@ export async function createNewUser(
   try {
     const currentUser = await getCurrentUser()
     if (
-      currentUser.role !== UserRole.SUPER_ADMIN &&
-      !currentUser.permissions.includes('admin:manage_users') &&
-      !currentUser.permissions.includes('*')
+      !currentUser ||
+      (currentUser.role !== UserRole.SUPER_ADMIN &&
+        !currentUser.permissions.includes('admin:manage_users') &&
+        !currentUser.permissions.includes('*'))
     ) {
       return { success: false, error: 'Access Denied: Only Super Admin can create users.' }
     }
 
     const { name, email, role, customRoleId, agencyIds } = CreateUserSchema.parse(rawInput)
 
-    const roles = getStoredRoles()
+    const roles = await getDbRoles()
     const roleObj = roles.find((r) => r.id === customRoleId || r.name === role)
 
     const newUser: StoredUser = {
@@ -145,14 +83,14 @@ export async function createNewUser(
       role: role as any,
       roleTitle: roleObj?.title || role,
       allowedAgencyIds: agencyIds,
-      activeAgencyId: agencyIds[0] || 'agency-caltex-01',
+      activeAgencyId: agencyIds[0] || '',
       permissions: roleObj?.permissions || ['inventory:view'],
       isActive: true,
     }
 
-    saveStoredUser(newUser)
+    const saved = await saveDbUser(newUser)
     revalidatePath('/admin/users')
-    return { success: true, user: newUser }
+    return { success: true, user: saved }
   } catch (err: any) {
     return { success: false, error: err?.message || 'Failed to create user.' }
   }
@@ -167,9 +105,10 @@ export async function createNewRole(
   try {
     const currentUser = await getCurrentUser()
     if (
-      currentUser.role !== UserRole.SUPER_ADMIN &&
-      !currentUser.permissions.includes('admin:manage_users') &&
-      !currentUser.permissions.includes('*')
+      !currentUser ||
+      (currentUser.role !== UserRole.SUPER_ADMIN &&
+        !currentUser.permissions.includes('admin:manage_users') &&
+        !currentUser.permissions.includes('*'))
     ) {
       return { success: false, error: 'Access Denied: Only Super Admin can create roles.' }
     }
@@ -186,9 +125,9 @@ export async function createNewRole(
       userCount: 0,
     }
 
-    saveStoredRole(newRole)
+    const saved = await saveDbRole(newRole)
     revalidatePath('/admin/users')
-    return { success: true, role: newRole }
+    return { success: true, role: saved }
   } catch (err: any) {
     return { success: false, error: err?.message || 'Failed to create role.' }
   }
@@ -200,16 +139,17 @@ export async function createNewRole(
 export async function toggleUserStatus(userId: string, isActive: boolean) {
   const currentUser = await getCurrentUser()
   if (
-    currentUser.role !== UserRole.SUPER_ADMIN &&
-    !currentUser.permissions.includes('admin:manage_users') &&
-    !currentUser.permissions.includes('*')
+    !currentUser ||
+    (currentUser.role !== UserRole.SUPER_ADMIN &&
+      !currentUser.permissions.includes('admin:manage_users') &&
+      !currentUser.permissions.includes('*'))
   ) {
     throw new Error('Access Denied: Only Super Admin can change user status.')
   }
 
-  toggleStoredUserStatus(userId, isActive)
+  const success = await toggleDbUserStatus(userId, isActive)
   revalidatePath('/admin/users')
-  return { success: true }
+  return { success }
 }
 
 export async function getPaginatedUsersAction(params: {
@@ -220,21 +160,23 @@ export async function getPaginatedUsersAction(params: {
 }) {
   const currentUser = await getCurrentUser()
   if (
-    currentUser.role !== UserRole.SUPER_ADMIN &&
-    !currentUser.permissions.includes('admin:manage_users') &&
-    !currentUser.permissions.includes('*')
+    !currentUser ||
+    (currentUser.role !== UserRole.SUPER_ADMIN &&
+      !currentUser.permissions.includes('admin:manage_users') &&
+      !currentUser.permissions.includes('*'))
   ) {
     throw new Error('Access Denied: Only Super Admin can manage users.')
   }
 
-  const { getPaginatedStoredUsers } = await import('@/lib/backend-store')
+  const data = await getPaginatedDbUsers({
+    page: Number(params.page) || 1,
+    pageSize: Number(params.pageSize) || 10,
+    search: params.search,
+    role: params.role,
+  })
+
   return {
     success: true,
-    data: getPaginatedStoredUsers({
-      page: Number(params.page) || 1,
-      pageSize: Number(params.pageSize) || 10,
-      search: params.search,
-      role: params.role,
-    }),
+    data,
   }
 }

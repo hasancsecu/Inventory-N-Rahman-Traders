@@ -4,15 +4,17 @@ import { getCurrentUser } from '@/lib/auth'
 import { UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import {
-  getStoredPurchases,
-  saveStoredPurchase,
-  deleteStoredPurchase,
+  getDbPurchases,
+  saveDbPurchase,
+  deleteDbPurchase,
+} from '@/lib/db-service'
+import {
   StoredPurchaseOrder,
   StoredPurchaseItem,
 } from '@/lib/backend-store'
 
 export async function getPurchasesAction(agencyId?: string): Promise<StoredPurchaseOrder[]> {
-  return getStoredPurchases(agencyId)
+  return getDbPurchases(agencyId)
 }
 
 export async function createPurchaseAction(data: {
@@ -27,14 +29,15 @@ export async function createPurchaseAction(data: {
 }) {
   const currentUser = await getCurrentUser()
   if (
-    currentUser.role !== UserRole.SUPER_ADMIN &&
-    currentUser.role !== UserRole.AGENCY_MANAGER &&
-    !currentUser.allowedAgencyIds.includes('*')
+    !currentUser ||
+    (currentUser.role !== UserRole.SUPER_ADMIN &&
+      currentUser.role !== UserRole.AGENCY_MANAGER &&
+      !currentUser.allowedAgencyIds.includes('*'))
   ) {
     throw new Error('Access Denied: Only Super Admin and Agency Managers can log purchase orders.')
   }
 
-  const totalAmount = data.items.reduce((sum, item) => sum + item.totalCost, 0)
+  const totalAmount = data.items.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0)
   const totalLiters = data.items.reduce((sum, item) => sum + item.totalLiters, 0)
 
   const newPO: StoredPurchaseOrder = {
@@ -46,27 +49,33 @@ export async function createPurchaseAction(data: {
     poNumber: data.poNumber,
     orderDate: data.orderDate || new Date().toISOString(),
     receivedDate: new Date().toISOString(),
+    subtotal: totalAmount,
+    transportCost: 0,
+    otherExpenses: 0,
     totalAmount,
+    paidAmount: totalAmount,
+    dueAmount: 0,
     totalLiters,
     status: 'RECEIVED',
+    paymentMethod: 'CASH',
     notes: data.notes,
     items: data.items,
   }
 
-  saveStoredPurchase(newPO)
+  const saved = await saveDbPurchase(newPO)
   revalidatePath('/analytics')
   revalidatePath('/inventory')
   revalidatePath('/')
-  return { success: true, purchase: newPO }
+  return { success: true, purchase: saved }
 }
 
 export async function deletePurchaseAction(id: string) {
   const currentUser = await getCurrentUser()
-  if (currentUser.role !== UserRole.SUPER_ADMIN && !currentUser.allowedAgencyIds.includes('*')) {
+  if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && !currentUser.allowedAgencyIds.includes('*'))) {
     throw new Error('Access Denied: Only Super Admin can delete purchase orders.')
   }
 
-  const success = deleteStoredPurchase(id)
+  const success = await deleteDbPurchase(id)
   revalidatePath('/analytics')
   revalidatePath('/inventory')
   revalidatePath('/')

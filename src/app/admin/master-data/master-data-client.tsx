@@ -60,13 +60,12 @@ import {
   deleteMasterPackagingType,
 } from '@/actions/master-data'
 import {
-  ViscosityGrade,
   ApplicationSegment,
-  PackagingType,
   UnitOfMeasure,
   VehicleTypeFocus,
 } from '@prisma/client'
 import { Pagination, paginateList } from '@/components/ui/pagination'
+import { cleanNumericString, handleNumericFocus } from '@/components/ui/number-input'
 
 interface MasterDataClientProps {
   currentUser: AuthUser
@@ -292,7 +291,7 @@ export function MasterDataClient({
 
   // Product Form Reactive States for Packaging Auto-fill
   const [productFormPackaging, setProductFormPackaging] = React.useState<string>('CAN_4L')
-  const [productFormLiters, setProductFormLiters] = React.useState<number>(4.0)
+  const [productFormLiters, setProductFormLiters] = React.useState<number | ''>(4.0)
   const [productFormUom, setProductFormUom] = React.useState<string>('PIECES')
 
   React.useEffect(() => {
@@ -574,7 +573,7 @@ export function MasterDataClient({
         } else if (type === 'invoices') {
           const res = await voidMasterInvoice(id)
           setInvoices((prev) => prev.filter((inv) => inv.id !== id))
-          showToast(res.message || 'Invoice voided and inventory reversed.')
+          showToast((res as any)?.message || 'Invoice voided and inventory reversed.')
         } else if (type === 'suppliers') {
           await deleteMasterSupplier(id)
           setSuppliers((prev) => prev.filter((s) => s.id !== id))
@@ -627,7 +626,7 @@ export function MasterDataClient({
         } else {
           const res = await createMasterBrand(payload)
           if (!res.success) {
-            alert(res.error || 'Failed to create brand')
+            alert((res as any)?.error || 'Failed to create brand')
             return
           }
           if (res.brand) setBrands((prev) => [res.brand, ...prev])
@@ -658,7 +657,7 @@ export function MasterDataClient({
         if (editingItem) {
           const res = await updateMasterViscosityGrade(editingItem.id, payload)
           if (!res.success) {
-            alert(res.error || 'Failed to update viscosity grade')
+            alert((res as any)?.error || 'Failed to update viscosity grade')
             return
           }
           setViscosities((prev) =>
@@ -668,10 +667,11 @@ export function MasterDataClient({
         } else {
           const res = await createMasterViscosityGrade(payload)
           if (!res.success) {
-            alert(res.error || 'Failed to create viscosity grade')
+            alert((res as any)?.error || 'Failed to create viscosity grade')
             return
           }
-          if (res.viscosityGrade) setViscosities((prev) => [res.viscosityGrade, ...prev])
+          const createdVisc = (res as any)?.viscosityGrade || (res as any)?.viscosity
+          if (createdVisc) setViscosities((prev) => [createdVisc, ...prev])
           showToast(`Viscosity grade "${payload.name}" registered.`)
         }
         setActiveModal(null)
@@ -701,7 +701,7 @@ export function MasterDataClient({
         if (editingItem) {
           const res = await updateMasterPackagingType(editingItem.id, payload)
           if (!res.success) {
-            alert(res.error || 'Failed to update packaging type')
+            alert((res as any)?.error || 'Failed to update packaging type')
             return
           }
           setPackagingTypes((prev) =>
@@ -711,10 +711,11 @@ export function MasterDataClient({
         } else {
           const res = await createMasterPackagingType(payload)
           if (!res.success) {
-            alert(res.error || 'Failed to create packaging type')
+            alert((res as any)?.error || 'Failed to create packaging type')
             return
           }
-          if (res.packagingType) setPackagingTypes((prev) => [res.packagingType, ...prev])
+          const createdPkg = (res as any)?.packagingType || (res as any)?.packaging
+          if (createdPkg) setPackagingTypes((prev) => [createdPkg, ...prev])
           showToast(`Packaging type "${payload.name}" registered.`)
         }
         setActiveModal(null)
@@ -1766,8 +1767,18 @@ export function MasterDataClient({
                       ৳{Number(inv.dueAmount).toLocaleString()}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">
-                        {inv.status}
+                      <span
+                        className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
+                          Number(inv.dueAmount || 0) <= 0 || inv.status === 'PAID'
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                            : inv.status === 'VOID'
+                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                              : Number(inv.paidAmount || 0) > 0
+                                ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800'
+                                : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                        }`}
+                      >
+                        {Number(inv.dueAmount || 0) <= 0 || inv.status === 'PAID' ? 'PAID' : Number(inv.paidAmount || 0) > 0 ? 'PARTIAL' : inv.status}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
@@ -2262,7 +2273,18 @@ export function MasterDataClient({
                       step="0.1"
                       required
                       value={productFormLiters}
-                      onChange={(e) => setProductFormLiters(parseFloat(e.target.value) || 0)}
+                      placeholder="0.0"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        const cleaned = cleanNumericString(e.target.value)
+                        e.target.value = cleaned
+                        setProductFormLiters(cleaned === '' ? '' : parseFloat(cleaned))
+                      }}
+                      onBlur={() => {
+                        if (productFormLiters === '' || Number(productFormLiters) <= 0) {
+                          setProductFormLiters(1.0)
+                        }
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono text-base sm:text-sm"
                     />
                   </div>
@@ -2283,7 +2305,12 @@ export function MasterDataClient({
                     <input
                       name="minAlertStock"
                       type="number"
-                      defaultValue={editingItem?.minAlertStock || 5}
+                      defaultValue={editingItem?.minAlertStock ?? 5}
+                      placeholder="5"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        e.currentTarget.value = cleanNumericString(e.currentTarget.value)
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono text-base sm:text-sm"
                     />
                   </div>
@@ -2445,7 +2472,12 @@ export function MasterDataClient({
                       type="number"
                       step="0.01"
                       required
-                      defaultValue={editingItem?.purchaseRate || 0}
+                      defaultValue={editingItem?.purchaseRate ? editingItem.purchaseRate : ''}
+                      placeholder="0.00"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        e.currentTarget.value = cleanNumericString(e.currentTarget.value)
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono text-base sm:text-sm"
                     />
                   </div>
@@ -2457,7 +2489,12 @@ export function MasterDataClient({
                       type="number"
                       step="0.01"
                       required
-                      defaultValue={editingItem?.tradePrice || 0}
+                      defaultValue={editingItem?.tradePrice ? editingItem.tradePrice : ''}
+                      placeholder="0.00"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        e.currentTarget.value = cleanNumericString(e.currentTarget.value)
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono text-base sm:text-sm"
                     />
                   </div>
@@ -2469,7 +2506,12 @@ export function MasterDataClient({
                       type="number"
                       step="0.01"
                       required
-                      defaultValue={editingItem?.mrp || 0}
+                      defaultValue={editingItem?.mrp ? editingItem.mrp : ''}
+                      placeholder="0.00"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        e.currentTarget.value = cleanNumericString(e.currentTarget.value)
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono text-base sm:text-sm"
                     />
                   </div>
@@ -2481,7 +2523,12 @@ export function MasterDataClient({
                       type="number"
                       step="0.1"
                       required
-                      defaultValue={editingItem?.stockQuantity || 10}
+                      defaultValue={editingItem?.stockQuantity ? editingItem.stockQuantity : ''}
+                      placeholder="10"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        e.currentTarget.value = cleanNumericString(e.currentTarget.value)
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono font-bold text-base sm:text-sm"
                     />
                   </div>
@@ -2604,7 +2651,12 @@ export function MasterDataClient({
                       type="number"
                       step="1000"
                       required
-                      defaultValue={editingItem?.totalCreditLimit || 500000}
+                      defaultValue={editingItem?.totalCreditLimit ? editingItem.totalCreditLimit : ''}
+                      placeholder="500000"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        e.currentTarget.value = cleanNumericString(e.currentTarget.value)
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono font-bold text-base sm:text-sm"
                     />
                   </div>
@@ -3003,8 +3055,12 @@ export function MasterDataClient({
                       type="number"
                       step="0.01"
                       required
-                      defaultValue={editingItem?.defaultLiters ?? 4.0}
+                      defaultValue={editingItem?.defaultLiters ? editingItem.defaultLiters : ''}
                       placeholder="4.0"
+                      onFocus={handleNumericFocus}
+                      onChange={(e) => {
+                        e.currentTarget.value = cleanNumericString(e.currentTarget.value)
+                      }}
                       className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-mono text-base sm:text-sm"
                     />
                   </div>

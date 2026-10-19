@@ -41,14 +41,13 @@ export async function GET(
     }
 
     if (!invoiceData) {
-      invoiceData = getStoredInvoiceById(id) || getStoredInvoices()[0]
+      invoiceData = getStoredInvoiceById(id)
       if (invoiceData) {
-        invoiceData.agency =
-          getStoredAgencyById(invoiceData.agencyId) || getStoredAgencies()[0]
+        invoiceData.agency = getStoredAgencyById(invoiceData.agencyId)
         invoiceData.customer = {
           name: invoiceData.customerName,
-          phone: invoiceData.phone,
-          address: 'Customer Warehouse / Workshop',
+          phone: '',
+          address: invoiceData.deliveryAddress || 'Customer Warehouse / Workshop',
         }
       }
     }

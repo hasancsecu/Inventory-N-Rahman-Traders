@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma'
 import {
   PaymentMethod,
   InvoiceStatus,
-  PackagingType,
   UnitOfMeasure,
 } from '@prisma/client'
 import { z } from 'zod'
@@ -18,7 +17,7 @@ const InvoiceItemInputSchema = z.object({
   productId: z.string().min(1, 'Product ID is required'),
   batchId: z.string().min(1, 'Batch ID is required'),
   quantity: z.number().positive('Quantity must be greater than 0'),
-  packaging: z.nativeEnum(PackagingType),
+  packaging: z.string().min(1, 'Packaging type is required'),
   uom: z.nativeEnum(UnitOfMeasure),
   unitLiters: z.number().positive('Unit liters must be greater than 0'),
   unitRate: z.number().nonnegative('Unit rate cannot be negative'),
@@ -120,7 +119,7 @@ export async function createDealershipInvoice(
           productId: string
           batchId: string
           quantity: number
-          packaging: PackagingType
+          packaging: string
           uom: UnitOfMeasure
           unitLiters: number
           totalLiters: number

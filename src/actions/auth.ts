@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import crypto from 'node:crypto'
 import {
   AuthUser,
   AUTH_COOKIE_NAME,
@@ -11,29 +12,63 @@ import {
   DEFAULT_ROLE_PERMISSIONS,
 } from '@/lib/auth'
 import {
-  getStoredUsers,
-  getStoredUserById,
-  getStoredUserByEmail,
-} from '@/lib/backend-store'
+  getDbUserById,
+  getDbUserByEmail,
+} from '@/lib/db-service'
 import { UserRole } from '@prisma/client'
 
 /**
- * Quick login for switching staff personas (Super Admin privilege):
- * - Super Admin (Full Cross-Agency Authority)
- * - Agency Manager (Caltex)
- * - Storekeeper (Central Warehouse & Stock)
- * - Cashier (Counter POS & Due Collection)
+ * Standard password hashing using PBKDF2
+ */
+export async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.randomBytes(16).toString('hex')
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex')
+  return `${salt}:${hash}`
+}
+
+export async function verifyPassword(password: string, combinedHash: string): Promise<boolean> {
+  try {
+    const [salt, key] = combinedHash.split(':')
+    if (!salt || !key) return false
+    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex')
+    return crypto.timingSafeEqual(Buffer.from(key, 'hex'), Buffer.from(hash, 'hex'))
+  } catch {
+    return false
+  }
+}
+
+async function setAuthCookies(authUser: AuthUser) {
+  const cookieStore = await cookies()
+  cookieStore.set(AUTH_COOKIE_NAME, JSON.stringify(authUser), {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    sameSite: 'lax',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+  })
+
+  cookieStore.set(ACTIVE_AGENCY_COOKIE, authUser.activeAgencyId || '', {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+    sameSite: 'lax',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+  })
+}
+
+/**
+ * Quick login for switching staff personas (Super Admin privilege only)
  */
 export async function quickLoginAs(userId: string) {
   const { getCurrentUser } = await import('@/lib/auth')
   const currentUser = await getCurrentUser()
-  if (currentUser && currentUser.role !== UserRole.SUPER_ADMIN && !currentUser.allowedAgencyIds.includes('*')) {
+  if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && !currentUser.allowedAgencyIds.includes('*'))) {
     throw new Error(
-      'Access Denied: Role switching and staff impersonation is strictly restricted to Super Admin.'
+      'Access Denied: Persona switching is strictly restricted to authenticated Super Admin.'
     )
   }
 
-  const user = getStoredUserById(userId)
+  const user = await getDbUserById(userId)
   if (!user) {
     throw new Error('User account not found')
   }
@@ -48,28 +83,11 @@ export async function quickLoginAs(userId: string) {
     role,
     roleTitle: user.roleTitle,
     allowedAgencyIds: user.allowedAgencyIds,
-    activeAgencyId: user.activeAgencyId || user.allowedAgencyIds[0] || 'agency-caltex-01',
+    activeAgencyId: user.activeAgencyId || user.allowedAgencyIds[0] || '',
     permissions,
   }
 
-  const cookieStore = await cookies()
-  cookieStore.set(AUTH_COOKIE_NAME, JSON.stringify(authUser), {
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    sameSite: 'lax',
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-  })
-
-  // Set active dealership
-  cookieStore.set(ACTIVE_AGENCY_COOKIE, authUser.activeAgencyId, {
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-    sameSite: 'lax',
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-  })
-
+  await setAuthCookies(authUser)
   revalidatePath('/', 'layout')
   return { success: true, user: authUser }
 }
@@ -78,23 +96,50 @@ export async function quickLoginAs(userId: string) {
  * Standard email/password authentication
  */
 export async function loginUser(credentials: { email: string; password?: string }) {
-  const { email } = credentials
+  const email = (credentials.email || '').trim().toLowerCase()
+  const password = credentials.password || ''
+
+  if (!email) {
+    return { success: false, error: 'Email address is required.' }
+  }
 
   // 1. Try Prisma DB if reachable
   try {
     const user = await prisma.user.findUnique({
-      where: { email: email.trim().toLowerCase(), isActive: true },
+      where: { email },
       include: {
         agencyAccess: true,
         customRole: true,
       },
     })
 
-    if (user) {
+    if (user && user.isActive) {
+      // Check password if set, or initialize on first login
+      if (user.passwordHash) {
+        const isValid = await verifyPassword(password, user.passwordHash)
+        if (!isValid) {
+          return { success: false, error: 'Invalid password. Please check your credentials.' }
+        }
+      } else if (password) {
+        // Save initial password hash
+        try {
+          const newHash = await hashPassword(password)
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash: newHash },
+          })
+        } catch {
+          // ignore if update fails
+        }
+      }
+
       const role = user.role as UserRole
       const permissions = user.customRole?.permissions || DEFAULT_ROLE_PERMISSIONS[role] || []
       const allowedAgencyIds = user.agencyAccess.map((a) => a.agencyId)
-      const activeAgencyId = user.defaultAgencyId || allowedAgencyIds[0] || 'agency-caltex-01'
+      if (role === UserRole.SUPER_ADMIN && !allowedAgencyIds.includes('*')) {
+        allowedAgencyIds.push('*')
+      }
+      const activeAgencyId = user.defaultAgencyId || allowedAgencyIds[0] || ''
 
       const authUser: AuthUser = {
         id: user.id,
@@ -107,37 +152,48 @@ export async function loginUser(credentials: { email: string; password?: string 
         permissions,
       }
 
-      const cookieStore = await cookies()
-      cookieStore.set(AUTH_COOKIE_NAME, JSON.stringify(authUser), {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-        sameSite: 'lax',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-      })
-
-      cookieStore.set(ACTIVE_AGENCY_COOKIE, activeAgencyId, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-        sameSite: 'lax',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-      })
-
+      await setAuthCookies(authUser)
       revalidatePath('/', 'layout')
       return { success: true, user: authUser }
     }
-  } catch {}
+  } catch (err: any) {
+    console.warn('Prisma login error, trying fallback:', err?.message)
+  }
 
-  // 2. Persistent Backend Store Lookup
-  const matchedUser = getStoredUserByEmail(email.trim())
+  // 2. Fallback User Lookup
+  const matchedUser = await getDbUserByEmail(email)
   if (matchedUser && matchedUser.isActive) {
-    return quickLoginAs(matchedUser.id)
+    if (matchedUser.passwordHash) {
+      const isValid = await verifyPassword(password, matchedUser.passwordHash)
+      if (!isValid) {
+        return { success: false, error: 'Invalid password. Please check your credentials.' }
+      }
+    } else if (password) {
+      matchedUser.passwordHash = await hashPassword(password)
+    }
+
+    const role = matchedUser.role as UserRole
+    const permissions = matchedUser.permissions || DEFAULT_ROLE_PERMISSIONS[role] || []
+
+    const authUser: AuthUser = {
+      id: matchedUser.id,
+      name: matchedUser.name,
+      email: matchedUser.email,
+      role,
+      roleTitle: matchedUser.roleTitle,
+      allowedAgencyIds: matchedUser.allowedAgencyIds,
+      activeAgencyId: matchedUser.activeAgencyId || matchedUser.allowedAgencyIds[0] || '',
+      permissions,
+    }
+
+    await setAuthCookies(authUser)
+    revalidatePath('/', 'layout')
+    return { success: true, user: authUser }
   }
 
   return {
     success: false,
-    error: 'Invalid credentials or user account deactivated.',
+    error: 'Invalid email or password. Please verify your credentials.',
   }
 }
 

@@ -9,9 +9,10 @@ export default async function AdminUsersPage() {
 
   // Guard: Only Super Admin can access
   if (
-    currentUser.role !== "SUPER_ADMIN" &&
-    !currentUser.permissions.includes("admin:manage_users") &&
-    !currentUser.permissions.includes("*")
+    !currentUser ||
+    (currentUser.role !== "SUPER_ADMIN" &&
+      !currentUser.permissions.includes("admin:manage_users") &&
+      !currentUser.permissions.includes("*"))
   ) {
     redirect("/");
   }
