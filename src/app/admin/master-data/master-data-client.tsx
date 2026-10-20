@@ -916,19 +916,29 @@ export function MasterDataClient({
       {/* --------------------------------------------------------------------- */}
       {activeTab === 'agencies' && (
         <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-amber-500" />
-              <span>Authorized Dealership Agencies ({filteredAgencies.length})</span>
-            </h3>
+          <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 truncate">
+                  Authorized Dealership Agencies
+                </h3>
+                <p className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+                  {filteredAgencies.length} registered agencies
+                </p>
+              </div>
+            </div>
             <button
+              type="button"
               onClick={() => {
                 setEditingItem(null)
                 setActiveModal('agencies')
               }}
-              className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 touch-manipulation active:scale-95 w-full sm:w-auto"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               <span>Register New Dealership</span>
             </button>
           </div>
@@ -1175,7 +1185,7 @@ export function MasterDataClient({
             </div>
 
             {/* Quick Action Button per Sub-Tab */}
-            <div className="shrink-0">
+            <div className="shrink-0 w-full sm:w-auto">
               {productSubTab === 'catalog' && (
                 <button
                   type="button"
@@ -1183,9 +1193,9 @@ export function MasterDataClient({
                     setEditingItem(null)
                     setActiveModal('products')
                   }}
-                  className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap touch-manipulation active:scale-95"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                   <span>Add Product SKU</span>
                 </button>
               )}
@@ -1196,9 +1206,9 @@ export function MasterDataClient({
                     setEditingItem(null)
                     setActiveModal('brands')
                   }}
-                  className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap touch-manipulation active:scale-95"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                   <span>Register Brand</span>
                 </button>
               )}
@@ -1209,9 +1219,9 @@ export function MasterDataClient({
                     setEditingItem(null)
                     setActiveModal('viscosities')
                   }}
-                  className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap touch-manipulation active:scale-95"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                   <span>Register Viscosity Grade</span>
                 </button>
               )}
@@ -1222,9 +1232,9 @@ export function MasterDataClient({
                     setEditingItem(null)
                     setActiveModal('packaging')
                   }}
-                  className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap touch-manipulation active:scale-95"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                   <span>Configure Packaging Type</span>
                 </button>
               )}
@@ -1667,19 +1677,29 @@ export function MasterDataClient({
       {/* --------------------------------------------------------------------- */}
       {activeTab === 'batches' && (
         <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-amber-500" />
-              <span>Inventory Batches & FIFO Cost Lots ({filteredBatches.length})</span>
-            </h3>
+          <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <Layers className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 truncate">
+                  Inventory Batches & FIFO Cost Lots
+                </h3>
+                <p className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+                  {filteredBatches.length} inward lots
+                </p>
+              </div>
+            </div>
             <button
+              type="button"
               onClick={() => {
                 setEditingItem(null)
                 setActiveModal('batches')
               }}
-              className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 touch-manipulation active:scale-95 w-full sm:w-auto"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               <span>Record Inward Batch / Purchase</span>
             </button>
           </div>
@@ -1871,19 +1891,29 @@ export function MasterDataClient({
       {/* --------------------------------------------------------------------- */}
       {activeTab === 'customers' && (
         <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Users className="h-4 w-4 text-amber-500" />
-              <span>Customer Khata Accounts & Credit Limits ({filteredCustomers.length})</span>
-            </h3>
+          <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 truncate">
+                  Customer Khata Accounts & Credit Limits
+                </h3>
+                <p className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+                  {filteredCustomers.length} registered accounts
+                </p>
+              </div>
+            </div>
             <button
+              type="button"
               onClick={() => {
                 setEditingItem(null)
                 setActiveModal('customers')
               }}
-              className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 touch-manipulation active:scale-95 w-full sm:w-auto"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               <span>Create Customer Account</span>
             </button>
           </div>
@@ -2046,14 +2076,16 @@ export function MasterDataClient({
       {/* --------------------------------------------------------------------- */}
       {activeTab === 'invoices' && (
         <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-amber-500" />
-                <span>Commercial Invoices & Chalans ({filteredInvoices.length})</span>
+          <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
+            <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 truncate">
+                Commercial Invoices & Chalans
               </h3>
-              <p className="text-[11px] text-zinc-500 mt-0.5">
-                Super Admin Void authority: voids invoice, automatically restores batch stock, and rolls back customer Khata dues.
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 font-mono">
+                {filteredInvoices.length} invoices issued • Super Admin void authority enabled
               </p>
             </div>
           </div>
@@ -2233,19 +2265,29 @@ export function MasterDataClient({
       {/* --------------------------------------------------------------------- */}
       {activeTab === 'suppliers' && (
         <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Truck className="h-4 w-4 text-amber-500" />
-              <span>Brand Principal Suppliers ({filteredSuppliers.length})</span>
-            </h3>
+          <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <Truck className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 truncate">
+                  Brand Principal Suppliers
+                </h3>
+                <p className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+                  {filteredSuppliers.length} configured suppliers
+                </p>
+              </div>
+            </div>
             <button
+              type="button"
               onClick={() => {
                 setEditingItem(null)
                 setActiveModal('suppliers')
               }}
-              className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 touch-manipulation active:scale-95 w-full sm:w-auto"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               <span>Configure Principal Supplier</span>
             </button>
           </div>
