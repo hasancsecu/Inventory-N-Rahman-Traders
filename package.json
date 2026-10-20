@@ -22,10 +22,14 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "@prisma/composer": "0.28.0",
+    "@prisma/composer-prisma-cloud": "0.28.0",
     "@prisma/orm-postgres": "^8.0.0-rc.18",
     "@types/pg": "^8.23.1",
+    "alchemy": "2.0.0-beta.78",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
+    "effect": "4.0.0-rc.115",
     "lucide-react": "^1.59.0",
     "next": "16.4.2",
     "next-themes": "^0.4.6",
@@ -50,8 +54,17 @@
     "typescript": "^5"
   },
   "overrides": {
+    "@effect/platform-bun": "4.0.0-rc.115",
+    "@effect/platform-node": "4.0.0-rc.115",
+    "@effect/platform-node-shared": "4.0.0-rc.115",
+    "@effect/sql-d1": "4.0.0-rc.115",
+    "@effect/sql-mysql2": "4.0.0-rc.115",
+    "@effect/sql-pg": "4.0.0-rc.115",
+    "@effect/sql-sqlite-do": "4.0.0-rc.115",
+    "@effect/vitest": "4.0.0-rc.115",
     "@prisma/prisma7": {
       "prisma": "$prisma"
-    }
+    },
+    "effect": "4.0.0-rc.115"
   }
 }
