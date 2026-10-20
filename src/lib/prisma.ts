@@ -43,6 +43,16 @@ function createPrismaClient(): PrismaClient {
     })
   }
 
+  // If using Prisma Accelerate / Prisma Postgres managed connection (prisma+postgres:// or prisma://)
+  if (
+    connectionString.startsWith('prisma+postgres://') ||
+    connectionString.startsWith('prisma://')
+  ) {
+    return new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    })
+  }
+
   // Cloud databases (Neon, Supabase, Vercel Postgres, AWS) require SSL
   const isLocal =
     connectionString.includes('localhost') ||
