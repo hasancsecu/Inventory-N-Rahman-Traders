@@ -9,6 +9,7 @@ import {
   Boxes,
   BookOpenCheck,
   Menu,
+  X,
   Crown,
   Database,
 } from "lucide-react";
@@ -18,12 +19,16 @@ import { AuthUser } from "@/lib/auth-types";
 interface MobileNavProps {
   activeUser?: AuthUser | null;
   onOpenMobileMenu?: () => void;
+  onToggleMobileMenu?: () => void;
+  isMobileMenuOpen?: boolean;
   cartCount?: number;
 }
 
 export function MobileNav({
   activeUser = null,
   onOpenMobileMenu,
+  onToggleMobileMenu,
+  isMobileMenuOpen = false,
   cartCount = 0,
 }: MobileNavProps) {
   const pathname = usePathname();
@@ -68,10 +73,18 @@ export function MobileNav({
     },
   ].filter((item) => !item.hidden);
 
+  const handleToggle = () => {
+    if (onToggleMobileMenu) {
+      onToggleMobileMenu();
+    } else if (onOpenMobileMenu) {
+      onOpenMobileMenu();
+    }
+  };
+
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.4)] safe-area-bottom"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.4)] safe-area-bottom"
     >
       <div className="grid grid-cols-5 items-center h-16 px-1 max-w-lg mx-auto">
         {navTabs.map((item) => {
@@ -116,19 +129,39 @@ export function MobileNav({
           );
         })}
 
-        {/* 5th slot: More / Menu button */}
+        {/* 5th slot: More / Menu toggle button */}
         <button
           type="button"
-          onClick={onOpenMobileMenu}
-          className={`flex flex-col items-center justify-center py-1 px-1 rounded-2xl transition-all duration-150 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 active:scale-95 touch-manipulation min-h-[48px] cursor-pointer`}
-          aria-label="Open More Menu"
+          onClick={handleToggle}
+          className={`flex flex-col items-center justify-center py-1 px-1 rounded-2xl transition-all duration-150 active:scale-95 touch-manipulation min-h-[48px] cursor-pointer relative group ${
+            isMobileMenuOpen
+              ? "text-red-600 dark:text-red-400 font-bold"
+              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 font-medium"
+          }`}
+          aria-label={isMobileMenuOpen ? "Close Menu" : "Open More Menu"}
+          aria-expanded={isMobileMenuOpen}
         >
-          <div className="p-1 rounded-xl group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800">
-            <Menu className="h-5 w-5 stroke-[1.8px]" />
+          <div
+            className={`p-1 rounded-xl transition-all ${
+              isMobileMenuOpen
+                ? "bg-red-500/15 dark:bg-red-500/25 scale-105"
+                : "group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800"
+            }`}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5 stroke-[2.4px] text-red-600 dark:text-red-400" />
+            ) : (
+              <Menu className="h-5 w-5 stroke-[1.8px]" />
+            )}
           </div>
           <span className="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">
-            {language === "bn" ? "আরও মেনু" : "More"}
+            {isMobileMenuOpen
+              ? (language === "bn" ? "বন্ধ করুন" : "Close")
+              : (language === "bn" ? "মেনু" : "Menu")}
           </span>
+          {isMobileMenuOpen && (
+            <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-red-600 dark:bg-red-400" />
+          )}
         </button>
       </div>
     </nav>

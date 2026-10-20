@@ -504,7 +504,7 @@ export function DashboardHeader({
           />
 
           {/* Drawer container */}
-          <div className="relative z-40 md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl p-4 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+          <div className="relative z-40 md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl p-4 pb-28 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
             {/* Language Switcher Bar in Mobile Drawer */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-100/80 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800">
               <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
@@ -770,7 +770,9 @@ export function DashboardHeader({
     </header>
     <MobileNav
       activeUser={activeUser}
-      onOpenMobileMenu={() => setMobileMenuOpen(true)}
+      isMobileMenuOpen={mobileMenuOpen}
+      onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
+      onOpenMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
     />
   </>
   );

@@ -741,7 +741,7 @@ export function AnalyticsClient({
 
           {/* Recent Sales Commercial Invoices */}
           <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-            <div className="p-5 border-b border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-zinc-200/80 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                   Recent Sales Invoices & Chalans in Period
@@ -752,7 +752,7 @@ export function AnalyticsClient({
               </div>
               <Link
                 href="/pos"
-                className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs border border-emerald-500/20 transition-all shrink-0 whitespace-nowrap self-start sm:self-auto"
               >
                 + POS Terminal →
               </Link>
@@ -931,7 +931,7 @@ export function AnalyticsClient({
 
           {/* Recent Inward Purchase Orders */}
           <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-            <div className="p-5 border-b border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-zinc-200/80 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                   Recent Procurement Consignments
@@ -940,7 +940,7 @@ export function AnalyticsClient({
                   Purchases received in {getActivePeriodLabel()}
                 </p>
               </div>
-              <span className="text-xs font-mono font-bold text-amber-600">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-mono font-bold shrink-0 self-start sm:self-auto">
                 {buyMetrics.recentPurchases.length} Orders
               </span>
             </div>
@@ -1050,7 +1050,7 @@ export function AnalyticsClient({
 
           {/* Recent Money Receipts Table */}
           <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-            <div className="p-5 border-b border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-zinc-200/80 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-800/20">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                   Recent Money Receipts & Cash Collections
@@ -1061,7 +1061,7 @@ export function AnalyticsClient({
               </div>
               <Link
                 href="/khata"
-                className="text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 font-bold text-xs border border-rose-500/20 transition-all shrink-0 whitespace-nowrap self-start sm:self-auto"
               >
                 + Khata Ledger Hub →
               </Link>

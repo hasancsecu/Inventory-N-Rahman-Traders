@@ -108,7 +108,7 @@ export function KhataClient({
     currentAgency?.id || agencies[0]?.id || "",
   );
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>(
-    PaymentMethod.BANK_TRANSFER,
+    PaymentMethod.CASH,
   );
   const [bankName, setBankName] = React.useState("Islami Bank Bangladesh PLC");
   const [chequeNo, setChequeNo] = React.useState("");
@@ -449,7 +449,7 @@ export function KhataClient({
                     href="/admin/master-data"
                     className="inline-block text-xs text-amber-600 dark:text-amber-400 font-bold hover:underline"
                   >
-                    + Add Customers in Master Data →
+                    Add Customers in Master Data →
                   </Link>
                 )}
               </div>
@@ -658,11 +658,11 @@ export function KhataClient({
               </div>
 
               {/* Tab Switcher: Statement Ledger vs Customer Invoices */}
-              <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/30">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/30 overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setActiveViewTab("statement")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                       activeViewTab === "statement"
                         ? "bg-purple-600 text-white shadow-xs"
                         : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -672,7 +672,7 @@ export function KhataClient({
                   </button>
                   <button
                     onClick={() => setActiveViewTab("invoices")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                       activeViewTab === "invoices"
                         ? "bg-purple-600 text-white shadow-xs"
                         : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -1282,11 +1282,11 @@ export function KhataClient({
                       }
                       className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 font-medium text-base sm:text-sm"
                     >
-                      <option value={PaymentMethod.BANK_TRANSFER}>
-                        Bank Transfer
-                      </option>
                       <option value={PaymentMethod.CASH}>
                         Cash on Counter
+                      </option>
+                      <option value={PaymentMethod.BANK_TRANSFER}>
+                        Bank Transfer
                       </option>
                       <option value={PaymentMethod.BKASH}>
                         bKash Merchant

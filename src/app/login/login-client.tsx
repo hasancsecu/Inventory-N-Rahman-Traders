@@ -215,16 +215,16 @@ export function LoginClient({
       <div className="lg:col-span-6 bg-zinc-50 dark:bg-zinc-900/60 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between space-y-6">
         {currentUser?.role === "SUPER_ADMIN" && staffUsers.length > 0 ? (
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-amber-500" />
+                <Crown className="h-4 w-4 text-amber-500 shrink-0" />
                 <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
                   {language === "bn"
                     ? "সুপার অ্যাডমিন ভূমিকা পরিবর্তন"
                     : "Super Admin Persona Switcher"}
                 </h2>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800">
+              <span className="self-start sm:self-auto text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800">
                 Authorized
               </span>
             </div>
@@ -253,35 +253,35 @@ export function LoginClient({
                           : "border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-800/40 hover:bg-white dark:hover:bg-zinc-800"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-700/60 shrink-0">
                           {getRoleIcon(user.role)}
                         </div>
-                        <div>
-                          <div className="font-bold text-xs text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                            <span>{user.name}</span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-xs text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 flex-wrap">
+                            <span className="truncate">{user.name}</span>
                             {isCurrent && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-mono">
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-mono shrink-0">
                                 {language === "bn"
                                   ? "বর্তমান সেশন"
                                   : "Active Session"}
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-zinc-500 mt-0.5">
+                          <div className="text-[11px] text-zinc-500 mt-0.5 truncate">
                             {roleBadge}
                           </div>
                         </div>
                       </div>
 
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">
+                      <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold shrink-0">
                         {roleBadge}
                       </span>
                     </div>
 
-                    <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-700/60 flex items-center justify-between text-[10px] text-zinc-500">
-                      <span>
+                    <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[10px] text-zinc-500">
+                      <span className="truncate">
                         {language === "bn" ? "এজেন্সি ক্ষেত্র:" : "Scope:"}{" "}
                         <strong className="text-zinc-700 dark:text-zinc-300">
                           {user.allowedAgencyIds.includes("*")
@@ -291,7 +291,7 @@ export function LoginClient({
                             : user.allowedAgencyIds.join(", ")}
                         </strong>
                       </span>
-                      <span className="text-red-600 dark:text-red-400 font-semibold group-hover:underline">
+                      <span className="text-red-600 dark:text-red-400 font-semibold shrink-0">
                         {language === "bn"
                           ? "স্যুইচ করুন →"
                           : "Switch Persona →"}

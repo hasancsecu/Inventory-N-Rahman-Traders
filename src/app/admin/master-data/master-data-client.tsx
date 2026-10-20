@@ -787,7 +787,7 @@ export function MasterDataClient({
                   ? t.masterData.addCustomer
                   : activeTab === 'suppliers'
                   ? t.masterData.addSupplier
-                  : '+ Add Record'}
+                  : 'Add Record'}
               </span>
             </button>
           </div>

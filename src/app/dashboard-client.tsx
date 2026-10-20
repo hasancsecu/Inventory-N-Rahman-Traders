@@ -302,7 +302,7 @@ export function DashboardClient({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Cols: Recent Scoped Dealership Invoices */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
                 {t.dashboard.recentInvoices}
@@ -316,9 +316,9 @@ export function DashboardClient({
             </div>
             <Link
               href="/pos"
-              className="text-xs font-semibold text-red-600 dark:text-red-400 hover:underline flex items-center gap-1"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 text-xs font-bold transition-all shrink-0 whitespace-nowrap self-start sm:self-auto"
             >
-              {language === 'bn' ? 'পিওএস বিক্রয় টার্মিনাল' : 'Open POS Terminal'}{' '}
+              <span>{language === 'bn' ? 'পিওএস বিক্রয় টার্মিনাল' : 'Open POS Terminal'}</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -491,14 +491,14 @@ export function DashboardClient({
         <div className="space-y-6">
           {/* Inventory Health Summary */}
           <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
-                <Boxes className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <Boxes className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
                 <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
                   {language === 'bn' ? 'গুদাম ও মজুত স্টক সারসংক্ষেপ' : 'Inventory Health Summary'}
                 </h3>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 shrink-0">
                 {language === 'bn' ? 'ডিপো স্টক' : 'Warehouse Stock'}
               </span>
             </div>
@@ -552,11 +552,11 @@ export function DashboardClient({
 
           {/* Viscosity Grade Volume Mix */}
           <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
                 {language === 'bn' ? 'সান্দ্রতা গ্রেড ভিত্তিক বিক্রয় অনুপাত' : 'Viscosity Grade Volume Share'}
               </h3>
-              <span className="text-xs text-zinc-400 font-mono">
+              <span className="text-xs text-zinc-400 font-mono shrink-0">
                 {language === 'bn' ? 'লিটার ভিত্তিক' : 'By Liters'}
               </span>
             </div>

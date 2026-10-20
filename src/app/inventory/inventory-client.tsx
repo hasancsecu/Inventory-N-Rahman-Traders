@@ -323,7 +323,7 @@ export function InventoryClient({
               className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
             >
               <Truck className="h-4 w-4" />
-              <span>{language === 'bn' ? '+ নতুন চালান ক্রয় / ব্যাচ এন্ট্রি' : '+ Inward Purchase / Add Batch'}</span>
+              <span>{language === 'bn' ? 'নতুন চালান ক্রয় / ব্যাচ এন্ট্রি' : 'Inward Purchase / Add Batch'}</span>
             </button>
           )}
 
@@ -666,7 +666,7 @@ export function InventoryClient({
                         className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 font-bold text-[11px] cursor-pointer touch-manipulation active:scale-95"
                       >
                         <Plus className="h-3 w-3" />
-                        <span>{language === 'bn' ? '+ ইনওয়ার্ড' : '+ Inward'}</span>
+                        <span>{language === 'bn' ? 'ইনওয়ার্ড' : 'Inward'}</span>
                       </button>
                     )}
                   </div>

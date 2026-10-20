@@ -161,7 +161,7 @@ export function AgencySwitcher({ currentAgency, agencies, isFullWidth = false }:
                   onClick={() => setIsOpen(false)}
                   className="inline-block px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20"
                 >
-                  {language === 'bn' ? '+ মাস্টার ডেটায় ডিলারশিপ যোগ করুন →' : '+ Add Dealership in Master Data →'}
+                  {language === 'bn' ? 'মাস্টার ডেটায় ডিলারশিপ যোগ করুন →' : 'Add Dealership in Master Data →'}
                 </Link>
               </div>
             ) : (
