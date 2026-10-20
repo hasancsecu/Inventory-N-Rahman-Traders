@@ -24,6 +24,7 @@ import { AuthUser } from "@/lib/auth-types";
 import { cleanNumericString, handleNumericFocus } from "@/components/ui/number-input";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
+import { toast } from "@/components/ui/toast";
 
 interface PosClientProps {
   currentAgency: AgencySummary | null;
@@ -157,13 +158,21 @@ export function PosClient({
     const numRate = Number(unitRate) || 0;
 
     if (numQty <= 0) {
-      alert("Quantity must be greater than zero");
+      toast.warning(
+        language === "bn"
+          ? "পরিমাণ শূন্যের বেশি হতে হবে।"
+          : "Quantity must be greater than zero.",
+        { title: language === "bn" ? "সতর্কবার্তা" : "Quantity Warning" }
+      );
       return;
     }
 
     if (numQty > selectedBatch.stockQuantity) {
-      alert(
-        `Insufficient stock! Available in batch: ${selectedBatch.stockQuantity}`,
+      toast.error(
+        language === "bn"
+          ? `পর্যাপ্ত স্টক নেই! ব্যাচে অবশিষ্ট: ${selectedBatch.stockQuantity}`
+          : `Insufficient stock! Available in batch: ${selectedBatch.stockQuantity}`,
+        { title: language === "bn" ? "স্টক ঘাটতি" : "Stock Warning" }
       );
       return;
     }

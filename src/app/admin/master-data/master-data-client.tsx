@@ -67,6 +67,7 @@ import {
 import { Pagination, paginateList } from '@/components/ui/pagination'
 import { cleanNumericString, handleNumericFocus } from '@/components/ui/number-input'
 import { useLanguage } from '@/context/language-context'
+import { toast } from '@/components/ui/toast'
 
 interface MasterDataClientProps {
   currentUser: AuthUser
@@ -135,6 +136,7 @@ export function MasterDataClient({
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
+    toast.success(msg)
     setTimeout(() => setToastMessage(null), 4000)
   }
 
@@ -355,7 +357,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save agency')
+        toast.error(err?.message || 'Failed to save agency')
       }
     })
   }
@@ -401,7 +403,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save product')
+        toast.error(err?.message || 'Failed to save product')
       }
     })
   }
@@ -463,7 +465,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save batch')
+        toast.error(err?.message || 'Failed to save batch')
       }
     })
   }
@@ -503,7 +505,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save customer')
+        toast.error(err?.message || 'Failed to save customer')
       }
     })
   }
@@ -544,7 +546,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save supplier')
+        toast.error(err?.message || 'Failed to save supplier')
       }
     })
   }
@@ -594,7 +596,7 @@ export function MasterDataClient({
           showToast('Packaging type removed from master catalog.')
         }
       } catch (err: any) {
-        alert(err?.message || 'Operation failed')
+        toast.error(err?.message || 'Operation failed')
       } finally {
         setDeleteConfirmation(null)
       }
@@ -618,7 +620,7 @@ export function MasterDataClient({
         if (editingItem) {
           const res = await updateMasterBrand(editingItem.id, payload)
           if (!res.success) {
-            alert(res.error || 'Failed to update brand')
+            toast.error(res.error || 'Failed to update brand')
             return
           }
           setBrands((prev) =>
@@ -628,7 +630,7 @@ export function MasterDataClient({
         } else {
           const res = await createMasterBrand(payload)
           if (!res.success) {
-            alert((res as any)?.error || 'Failed to create brand')
+            toast.error((res as any)?.error || 'Failed to create brand')
             return
           }
           if (res.brand) setBrands((prev) => [res.brand, ...prev])
@@ -637,7 +639,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save brand')
+        toast.error(err?.message || 'Failed to save brand')
       }
     })
   }
@@ -659,7 +661,7 @@ export function MasterDataClient({
         if (editingItem) {
           const res = await updateMasterViscosityGrade(editingItem.id, payload)
           if (!res.success) {
-            alert((res as any)?.error || 'Failed to update viscosity grade')
+            toast.error((res as any)?.error || 'Failed to update viscosity grade')
             return
           }
           setViscosities((prev) =>
@@ -669,7 +671,7 @@ export function MasterDataClient({
         } else {
           const res = await createMasterViscosityGrade(payload)
           if (!res.success) {
-            alert((res as any)?.error || 'Failed to create viscosity grade')
+            toast.error((res as any)?.error || 'Failed to create viscosity grade')
             return
           }
           const createdVisc = (res as any)?.viscosityGrade || (res as any)?.viscosity
@@ -679,7 +681,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save viscosity grade')
+        toast.error(err?.message || 'Failed to save viscosity grade')
       }
     })
   }
@@ -703,7 +705,7 @@ export function MasterDataClient({
         if (editingItem) {
           const res = await updateMasterPackagingType(editingItem.id, payload)
           if (!res.success) {
-            alert((res as any)?.error || 'Failed to update packaging type')
+            toast.error((res as any)?.error || 'Failed to update packaging type')
             return
           }
           setPackagingTypes((prev) =>
@@ -713,7 +715,7 @@ export function MasterDataClient({
         } else {
           const res = await createMasterPackagingType(payload)
           if (!res.success) {
-            alert((res as any)?.error || 'Failed to create packaging type')
+            toast.error((res as any)?.error || 'Failed to create packaging type')
             return
           }
           const createdPkg = (res as any)?.packagingType || (res as any)?.packaging
@@ -723,7 +725,7 @@ export function MasterDataClient({
         setActiveModal(null)
         setEditingItem(null)
       } catch (err: any) {
-        alert(err?.message || 'Failed to save packaging type')
+        toast.error(err?.message || 'Failed to save packaging type')
       }
     })
   }

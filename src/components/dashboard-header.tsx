@@ -384,7 +384,7 @@ export function DashboardHeader({
                         <span>{t.header.changePassword}</span>
                       </div>
                       <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500">
-                        PAGE
+                        AUTH
                       </span>
                     </Link>
 

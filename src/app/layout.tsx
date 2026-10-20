@@ -5,6 +5,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { LanguageProvider } from '@/context/language-context'
 import { DashboardHeader } from '@/components/dashboard-header'
+import { Toaster } from '@/components/ui/toast'
 import { getActiveAgency, getAllAgencies } from '@/actions/agency'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -57,6 +58,7 @@ export default async function RootLayout({
               activeUser={currentUser}
             />
             <main className="flex-1 flex flex-col">{children}</main>
+            <Toaster />
           </LanguageProvider>
         </ThemeProvider>
       </body>

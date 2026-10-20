@@ -31,6 +31,7 @@ import { createMasterBatch, getPaginatedInventoryAction } from '@/actions/master
 import { Pagination } from '@/components/ui/pagination'
 import { cleanNumericString, handleNumericFocus } from '@/components/ui/number-input'
 import { useLanguage } from '@/context/language-context'
+import { toast } from '@/components/ui/toast'
 
 interface InventoryClientProps {
   currentAgency: AgencySummary | null
@@ -120,29 +121,29 @@ export function InventoryClient({
   const handlePurchaseSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedProductId) {
-      alert('Please select a product SKU')
+      toast.warning(language === 'bn' ? 'অনুগ্রহ করে পণ্যের এসকেইউ (SKU) নির্বাচন করুন।' : 'Please select a product SKU')
       return
     }
     if (!batchNumber.trim()) {
-      alert('Please enter a batch lot number')
+      toast.warning(language === 'bn' ? 'অনুগ্রহ করে ব্যাচ লট নম্বর দিন।' : 'Please enter a batch lot number')
       return
     }
     if (!purchaseRate || Number(purchaseRate) <= 0) {
-      alert('Please enter a valid purchase rate (FIFO cost)')
+      toast.warning(language === 'bn' ? 'সঠিক ক্রয়মূল্য (FIFO cost) প্রদান করুন।' : 'Please enter a valid purchase rate (FIFO cost)')
       return
     }
     if (!tradePrice || Number(tradePrice) <= 0) {
-      alert('Please enter a valid trade price (TP)')
+      toast.warning(language === 'bn' ? 'সঠিক ট্রেড প্রাইজ (TP) প্রদান করুন।' : 'Please enter a valid trade price (TP)')
       return
     }
     if (!stockQuantity || Number(stockQuantity) <= 0) {
-      alert('Please enter a stock quantity greater than 0')
+      toast.warning(language === 'bn' ? 'মজুত পরিমাণ ০-এর বেশি হতে হবে।' : 'Please enter a stock quantity greater than 0')
       return
     }
 
     const agencyId = currentAgency?.id || agencies[0]?.id
     if (!agencyId) {
-      alert('No active dealership agency selected')
+      toast.error(language === 'bn' ? 'কোনো সক্রিয় ডিলারশিপ এজেন্সি নির্বাচিত নেই।' : 'No active dealership agency selected')
       return
     }
 
@@ -171,14 +172,19 @@ export function InventoryClient({
           showToast(
             `Inward purchase recorded: ${prod?.name || 'Item'} (Lot: ${batchNumber.toUpperCase()}). ৳${totalVal} synced to Stock, Supplier Khata & Buy Analytics.`
           )
+          toast.success(
+            language === 'bn'
+              ? `ক্রয় চালান সম্পন্ন: ${prod?.name || 'পণ্য'} (লট: ${batchNumber.toUpperCase()})`
+              : `Inward purchase recorded: ${prod?.name || 'Item'}`
+          )
           setIsPurchaseModalOpen(false)
           resetForm()
           router.refresh()
         } else {
-          alert((res as any).error || 'Failed to record inward purchase')
+          toast.error((res as any).error || (language === 'bn' ? 'ক্রয় চালান সংরক্ষণ করা যায়নি।' : 'Failed to record inward purchase'))
         }
       } catch (err: any) {
-        alert(err?.message || 'Failed to record inward purchase')
+        toast.error(err?.message || (language === 'bn' ? 'ক্রয় চালান সংরক্ষণ করা যায়নি।' : 'Failed to record inward purchase'))
       }
     })
   }
