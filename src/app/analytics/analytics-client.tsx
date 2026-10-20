@@ -32,6 +32,8 @@ import { AgencySummary } from '@/actions/agency'
 import { getFullAnalytics } from '@/actions/analytics'
 import { ComprehensiveAnalyticsResult, AnalyticsQuery } from '@/lib/backend-store'
 import { AuthUser } from '@/lib/auth-types'
+import { useLanguage } from '@/context/language-context'
+import { BENGALI_MONTHS, ENGLISH_MONTHS } from '@/lib/i18n/translations'
 import Link from 'next/link'
 
 interface AnalyticsClientProps {
@@ -41,21 +43,6 @@ interface AnalyticsClientProps {
   currentUser?: AuthUser
 }
 
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
-
 const AVAILABLE_YEARS = [2024, 2025, 2026, 2027]
 
 export function AnalyticsClient({
@@ -64,6 +51,8 @@ export function AnalyticsClient({
   initialAnalytics,
   currentUser,
 }: AnalyticsClientProps) {
+  const { t, language } = useLanguage()
+  const monthNames = language === 'bn' ? BENGALI_MONTHS : ENGLISH_MONTHS
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN'
 
   // Timeframe and Scope State
@@ -190,7 +179,7 @@ export function AnalyticsClient({
   const getActivePeriodLabel = () => {
     if (timeframe === 'DAILY') {
       const d = new Date(selectedDate)
-      return d.toLocaleDateString('en-GB', {
+      return d.toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-GB', {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
@@ -198,9 +187,9 @@ export function AnalyticsClient({
       })
     }
     if (timeframe === 'MONTHLY') {
-      return `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
+      return `${monthNames[selectedMonth - 1]} ${selectedYear}`
     }
-    return `Full Year ${selectedYear}`
+    return language === 'bn' ? `সম্পূর্ণ বছর ${selectedYear}` : `Full Year ${selectedYear}`
   }
 
   const { buyMetrics, sellMetrics, dueMetrics, timeline } = analytics
@@ -224,13 +213,15 @@ export function AnalyticsClient({
               </span>
               <div>
                 <h1 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight flex items-center gap-2">
-                  <span>Buy, Sell & Due Analytics</span>
+                  <span>{language === 'bn' ? 'ক্রয়, বিক্রয় ও বকেয়া অ্যানালিটিক্স' : 'Buy, Sell & Due Analytics'}</span>
                   {isPending && (
                     <RefreshCw className="h-4 w-4 text-amber-500 animate-spin" />
                   )}
                 </h1>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  Full commercial intelligence across Procurement (Buy), Revenue (Sell), and Khata Ledgers (Due).
+                  {language === 'bn'
+                    ? 'সংগ্রহ (ক্রয়), আয় (বিক্রয়) এবং খাতা লেজার (বকেয়া) সংক্রান্ত সম্পূর্ণ বাণিজ্যিক পরিসংখ্যান।'
+                    : 'Full commercial intelligence across Procurement (Buy), Revenue (Sell), and Khata Ledgers (Due).'}
                 </p>
               </div>
             </div>
@@ -239,14 +230,14 @@ export function AnalyticsClient({
           {/* Dealership Scope Selector */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hidden sm:inline">
-              Tenancy:
+              {t.analytics.tenancy}
             </span>
             <select
               value={selectedAgencyId}
               onChange={(e) => handleAgencyChange(e.target.value)}
               className="px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
             >
-              <option value="ALL">🏢 All Dealerships (Consolidated)</option>
+              <option value="ALL">{t.analytics.allAgenciesConsolidated}</option>
               {agencies.map((agency) => (
                 <option key={agency.id} value={agency.id}>
                   {agency.code} • {agency.name}
@@ -269,7 +260,7 @@ export function AnalyticsClient({
               }`}
             >
               <Calendar className="h-3.5 w-3.5" />
-              <span>Daily (Date-Wise)</span>
+              <span>{t.analytics.timeframeDaily}</span>
             </button>
             <button
               onClick={() => handleTimeframeChange('MONTHLY')}
@@ -280,7 +271,7 @@ export function AnalyticsClient({
               }`}
             >
               <Layers className="h-3.5 w-3.5" />
-              <span>Monthly</span>
+              <span>{t.analytics.timeframeMonthly}</span>
             </button>
             <button
               onClick={() => handleTimeframeChange('YEARLY')}
@@ -291,7 +282,7 @@ export function AnalyticsClient({
               }`}
             >
               <BarChart3 className="h-3.5 w-3.5" />
-              <span>Yearly</span>
+              <span>{t.analytics.timeframeYearly}</span>
             </button>
           </div>
 
@@ -328,7 +319,7 @@ export function AnalyticsClient({
                   onClick={resetToday}
                   className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer"
                 >
-                  Today
+                  {t.analytics.today}
                 </button>
               </div>
             )}
@@ -348,7 +339,7 @@ export function AnalyticsClient({
                   onChange={(e) => handleMonthChange(Number(e.target.value))}
                   className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 >
-                  {MONTH_NAMES.map((m, idx) => (
+                  {monthNames.map((m, idx) => (
                     <option key={m} value={idx + 1}>
                       {m}
                     </option>
@@ -379,7 +370,7 @@ export function AnalyticsClient({
                   onClick={resetCurrentMonth}
                   className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer"
                 >
-                  This Month
+                  {t.analytics.thisMonth}
                 </button>
               </div>
             )}
@@ -401,7 +392,7 @@ export function AnalyticsClient({
                 >
                   {AVAILABLE_YEARS.map((y) => (
                     <option key={y} value={y}>
-                      Calendar Year {y}
+                      {language === 'bn' ? `ক্যালেন্ডার বছর ${y}` : `Calendar Year ${y}`}
                     </option>
                   ))}
                 </select>
@@ -418,7 +409,7 @@ export function AnalyticsClient({
                   onClick={resetCurrentYear}
                   className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer"
                 >
-                  Current Year
+                  {t.analytics.currentYear}
                 </button>
               </div>
             )}
@@ -447,10 +438,10 @@ export function AnalyticsClient({
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
               <ShoppingCart className="h-4 w-4" />
-              <span>1. BUY (Procurement & Lifting)</span>
+              <span>{t.analytics.buyPillar}</span>
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-400 font-bold">
-              {buyMetrics.orderCount} Inward POs
+              {buyMetrics.orderCount} {t.analytics.inwardPOs}
             </span>
           </div>
 
@@ -459,7 +450,7 @@ export function AnalyticsClient({
               ৳{buyMetrics.totalAmount.toLocaleString()}
             </div>
             <div className="text-xs text-zinc-500 flex items-center gap-1.5 font-medium">
-              <span>Liters Lifted:</span>
+              <span>{t.analytics.litersLifted}</span>
               <strong className="text-zinc-900 dark:text-zinc-200 font-mono">
                 {buyMetrics.totalLiters.toLocaleString()} Ltr
               </strong>
@@ -468,13 +459,13 @@ export function AnalyticsClient({
 
           <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
             <span>
-              Avg Rate:{' '}
+              {t.analytics.avgRate}{' '}
               <strong className="text-zinc-800 dark:text-zinc-200 font-mono">
                 ৳{buyMetrics.avgRatePerLiter}/L
               </strong>
             </span>
             <span className="text-amber-600 dark:text-amber-400 font-bold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-              View Inward Details →
+              {t.analytics.viewInwardDetails}
             </span>
           </div>
         </div>
@@ -491,10 +482,10 @@ export function AnalyticsClient({
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <TrendingUp className="h-4 w-4" />
-              <span>2. SELL (Revenue & Margin)</span>
+              <span>{t.analytics.sellPillar}</span>
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 font-bold">
-              {sellMetrics.invoiceCount} Invoices
+              {sellMetrics.invoiceCount} {t.analytics.invoicesCount}
             </span>
           </div>
 
@@ -503,23 +494,23 @@ export function AnalyticsClient({
               ৳{sellMetrics.totalRevenue.toLocaleString()}
             </div>
             <div className="text-xs text-zinc-500 flex items-center gap-1.5 font-medium">
-              <span>Liters Sold:</span>
+              <span>{t.analytics.litersSold}</span>
               <strong className="text-zinc-900 dark:text-zinc-200 font-mono">
                 {sellMetrics.totalLiters.toLocaleString()} Ltr
               </strong>
-              <span>(Avg ৳{sellMetrics.avgSellingPricePerLiter}/L)</span>
+              <span>({t.analytics.avgSellingPrice} ৳{sellMetrics.avgSellingPricePerLiter}/L)</span>
             </div>
           </div>
 
           <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
             <span>
-              FIFO Gross Profit:{' '}
+              {t.analytics.fifoGrossProfit}{' '}
               <strong className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">
                 ৳{sellMetrics.totalGrossProfit.toLocaleString()} ({sellMetrics.grossMarginPercent}%)
               </strong>
             </span>
             <span className="text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-              View Sales Details →
+              {t.analytics.viewSalesDetails}
             </span>
           </div>
         </div>
@@ -536,10 +527,10 @@ export function AnalyticsClient({
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
               <BookOpenCheck className="h-4 w-4" />
-              <span>3. DUE (Khata & Collections)</span>
+              <span>{t.analytics.duePillar}</span>
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-400 font-bold">
-              {dueMetrics.collectionEfficiencyPercent}% Collection Eff.
+              {dueMetrics.collectionEfficiencyPercent}% {t.analytics.collectionEff}
             </span>
           </div>
 
@@ -548,7 +539,7 @@ export function AnalyticsClient({
               ৳{dueMetrics.dueCollected.toLocaleString()}
             </div>
             <div className="text-xs text-zinc-500 flex items-center gap-1.5 font-medium">
-              <span>New Due Issued:</span>
+              <span>{t.analytics.newDueIssued}</span>
               <strong className="text-zinc-900 dark:text-zinc-200 font-mono">
                 ৳{dueMetrics.newDueCreated.toLocaleString()}
               </strong>
@@ -557,13 +548,13 @@ export function AnalyticsClient({
 
           <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
             <span>
-              Total Outstanding:{' '}
+              {t.analytics.totalOutstanding}{' '}
               <strong className="text-rose-600 dark:text-rose-400 font-mono font-bold">
                 ৳{dueMetrics.totalOutstandingDue.toLocaleString()}
               </strong>
             </span>
             <span className="text-rose-600 dark:text-rose-400 font-bold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-              View Khata Details →
+              {t.analytics.viewKhataDetails}
             </span>
           </div>
         </div>
@@ -582,7 +573,7 @@ export function AnalyticsClient({
           }`}
         >
           <TrendingUp className="h-4 w-4" />
-          <span>Sales & Revenue Analytics</span>
+          <span>{t.analytics.salesAnalyticsTab}</span>
           <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-white/20 dark:bg-zinc-800 font-mono">
             ৳{Math.round(sellMetrics.totalRevenue / 1000)}k
           </span>
@@ -597,7 +588,7 @@ export function AnalyticsClient({
           }`}
         >
           <ShoppingCart className="h-4 w-4" />
-          <span>Procurement & Buy Analytics</span>
+          <span>{t.analytics.procurementAnalyticsTab}</span>
           <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-white/20 dark:bg-zinc-800 font-mono">
             ৳{Math.round(buyMetrics.totalAmount / 1000)}k
           </span>
@@ -612,7 +603,7 @@ export function AnalyticsClient({
           }`}
         >
           <BookOpenCheck className="h-4 w-4" />
-          <span>Due & Khata Collections</span>
+          <span>{t.analytics.dueAnalyticsTab}</span>
           <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-white/20 dark:bg-zinc-800 font-mono">
             ৳{Math.round(dueMetrics.dueCollected / 1000)}k
           </span>
@@ -627,7 +618,7 @@ export function AnalyticsClient({
           }`}
         >
           <Activity className="h-4 w-4" />
-          <span>Comparative Progression (Buy vs Sell vs Due)</span>
+          <span>{t.analytics.comparativeProgressionTab}</span>
         </button>
       </div>
 

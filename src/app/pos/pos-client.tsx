@@ -23,6 +23,7 @@ import { UnitOfMeasure, PaymentMethod } from "@prisma/client";
 import { AuthUser } from "@/lib/auth-types";
 import { cleanNumericString, handleNumericFocus } from "@/components/ui/number-input";
 import Link from "next/link";
+import { useLanguage } from "@/context/language-context";
 
 interface PosClientProps {
   currentAgency: AgencySummary | null;
@@ -54,6 +55,7 @@ export function PosClient({
   products,
   currentUser,
 }: PosClientProps) {
+  const { t, language, formatCurrency, formatNumber } = useLanguage();
   const canCreateInvoice = currentUser
     ? currentUser.role === "SUPER_ADMIN" ||
       currentUser.role === "AGENCY_MANAGER" ||
@@ -260,29 +262,29 @@ export function PosClient({
               <ShoppingCart className="h-4 w-4" />
             </span>
             <h1 className="text-xl sm:text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
-              Atomic POS Invoicing & Chalan Terminal
+              {t.pos.title}
             </h1>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Agency Scope:{" "}
+            {language === "bn" ? "সক্রিয় ডিলারশিপ:" : "Agency Scope:"}{" "}
             <span className="font-bold font-mono text-zinc-800 dark:text-zinc-200">
               {currentAgency?.name} ({currentAgency?.code})
             </span>{" "}
-            • Sequential numbering enforced per dealership.
+            • {language === "bn" ? "ডিলারশিপ ভিত্তিক স্বয়ংক্রিয় চালান সিকোয়েন্স সক্রিয়।" : "Sequential numbering enforced per dealership."}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs">
-            <span className="text-zinc-400">Total Liters:</span>{" "}
+            <span className="text-zinc-400">{language === "bn" ? "মোট লিটার:" : "Total Liters:"}</span>{" "}
             <strong className="font-mono text-red-600 dark:text-red-400">
-              {totalLiters.toLocaleString()} Ltr
+              {formatNumber(totalLiters)} Ltr
             </strong>
           </div>
           <div className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs">
-            <span className="text-zinc-400">Items Count:</span>{" "}
+            <span className="text-zinc-400">{language === "bn" ? "আইটেম সংখ্যা:" : "Items Count:"}</span>{" "}
             <strong className="font-mono text-zinc-900 dark:text-zinc-100">
-              {cartItems.length}
+              {formatNumber(cartItems.length)}
             </strong>
           </div>
         </div>
@@ -291,14 +293,15 @@ export function PosClient({
       {products.length === 0 && (
         <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 dark:text-amber-300">
           <span>
-            Catalog is empty. Add lubricant products and batches in Master Data
-            to enable POS billing.
+            {language === "bn"
+              ? "ক্যাটালগ খালি। পিওএস বিলিংয়ের জন্য মাস্টার ডেটা থেকে পণ্য ও ব্যাচ যোগ করুন।"
+              : "Catalog is empty. Add lubricant products and batches in Master Data to enable POS billing."}
           </span>
           <Link
             href="/admin/master-data"
             className="font-bold underline hover:text-amber-700 whitespace-nowrap"
           >
-            + Open Master Data Hub →
+            {t.dashboard.openMasterData}
           </Link>
         </div>
       )}
@@ -315,10 +318,10 @@ export function PosClient({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                 <Boxes className="h-4 w-4 text-red-600" />
-                Select Product & Active Batch
+                {t.pos.selectProduct}
               </div>
               <span className="text-[11px] text-zinc-400 font-mono">
-                Dealership Scoped Catalog
+                {language === "bn" ? "ডিলারশিপ পণ্য তালিকা" : "Dealership Scoped Catalog"}
               </span>
             </div>
 
@@ -326,7 +329,7 @@ export function PosClient({
               {/* Product Select */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                  Lubricant Product
+                  {t.pos.selectProduct}
                 </label>
                 <select
                   value={selectedProductId}
@@ -334,7 +337,7 @@ export function PosClient({
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 >
                   {products.length === 0 ? (
-                    <option value="">No products available in catalog</option>
+                    <option value="">{language === "bn" ? "ক্যাটালগে কোনো পণ্য নেই" : "No products available in catalog"}</option>
                   ) : (
                     products.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -348,11 +351,11 @@ export function PosClient({
               {/* Batch Select */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center justify-between">
-                  <span>Batch & Stock</span>
+                  <span>{t.pos.selectBatch}</span>
                   {selectedBatch && (
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono">
-                      Available: {selectedBatch.stockQuantity}{" "}
-                      {selectedProduct?.uom === "LITERS" ? "Ltr" : "Pcs"}
+                      {language === "bn" ? "মজুত অবশিষ্ট:" : "Available:"} {formatNumber(selectedBatch.stockQuantity)}{" "}
+                      {selectedProduct?.uom === "LITERS" ? (language === "bn" ? "লিটার" : "Ltr") : (language === "bn" ? "পিস" : "Pcs")}
                     </span>
                   )}
                 </label>
@@ -362,12 +365,12 @@ export function PosClient({
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 >
                   {availableBatches.length === 0 ? (
-                    <option value="">No stock batches available</option>
+                    <option value="">{language === "bn" ? "কোনো সক্রিয় ব্যাচ মজুত নেই" : "No stock batches available"}</option>
                   ) : (
                     availableBatches.map((b: any) => (
                       <option key={b.id} value={b.id}>
-                        {b.batchNumber} • TP: ৳{b.tradePrice?.toLocaleString()}{" "}
-                        (Stock: {b.stockQuantity})
+                        {b.batchNumber} • {language === "bn" ? "দর:" : "TP:"} {formatCurrency(b.tradePrice)}{" "}
+                        ({language === "bn" ? "স্টক:" : "Stock:"} {formatNumber(b.stockQuantity)})
                       </option>
                     ))
                   )}
@@ -379,7 +382,7 @@ export function PosClient({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
               <div className="space-y-1">
                 <label className="text-xs text-zinc-500 font-medium">
-                  Quantity
+                  {t.pos.quantity}
                 </label>
                 <input
                   type="number"
@@ -402,7 +405,7 @@ export function PosClient({
 
               <div className="space-y-1">
                 <label className="text-xs text-zinc-500 font-medium">
-                  Unit Rate (৳)
+                  {t.pos.unitRate}
                 </label>
                 <input
                   type="number"
@@ -423,13 +426,11 @@ export function PosClient({
 
               <div className="space-y-1">
                 <label className="text-xs text-zinc-500 font-medium">
-                  Liters Total
+                  {t.pos.totalLiters}
                 </label>
                 <div className="px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-sm font-mono font-bold text-zinc-700 dark:text-zinc-300">
                   {selectedProduct
-                    ? (
-                        (Number(quantity) || 0) * selectedProduct.litersPerUnit
-                      ).toLocaleString()
+                    ? formatNumber((Number(quantity) || 0) * selectedProduct.litersPerUnit)
                     : 0}{" "}
                   L
                 </div>
@@ -442,7 +443,7 @@ export function PosClient({
                   className="w-full py-2.5 rounded-xl bg-zinc-900 hover:bg-black dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
-                  Add to Cart
+                  {t.pos.addToCart}
                 </button>
               </div>
             </div>
@@ -452,10 +453,10 @@ export function PosClient({
           <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
               <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                Invoice Line Items ({cartItems.length})
+                {t.pos.cartTitle} ({formatNumber(cartItems.length)})
               </h3>
               <span className="text-xs font-mono text-zinc-500">
-                Subtotal: ৳{subtotal.toLocaleString()}
+                {t.common.subtotal}: {formatCurrency(subtotal)}
               </span>
             </div>
 
@@ -463,12 +464,12 @@ export function PosClient({
               <table className="w-full text-left text-xs min-w-[540px]">
                 <thead className="bg-zinc-50 dark:bg-zinc-800/40 text-zinc-500 font-semibold uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-800">
                   <tr>
-                    <th className="py-2.5 px-3">Product & Batch</th>
-                    <th className="py-2.5 px-3 text-center">Packaging</th>
-                    <th className="py-2.5 px-3 text-right">Qty</th>
-                    <th className="py-2.5 px-3 text-right">Liters</th>
-                    <th className="py-2.5 px-3 text-right">Rate</th>
-                    <th className="py-2.5 px-3 text-right">Line Total</th>
+                    <th className="py-2.5 px-3">{t.pos.colProduct}</th>
+                    <th className="py-2.5 px-3 text-center">{t.pos.packaging}</th>
+                    <th className="py-2.5 px-3 text-right">{t.pos.colQty}</th>
+                    <th className="py-2.5 px-3 text-right">{t.pos.colLiters}</th>
+                    <th className="py-2.5 px-3 text-right">{t.pos.colRate}</th>
+                    <th className="py-2.5 px-3 text-right">{t.pos.colTotal}</th>
                     <th className="py-2.5 px-2 text-center"></th>
                   </tr>
                 </thead>
@@ -479,8 +480,7 @@ export function PosClient({
                         colSpan={7}
                         className="py-8 text-center text-zinc-400"
                       >
-                        Cart is empty. Select a lubricant product and batch
-                        above and click &quot;Add Line Item to Cart&quot;.
+                        {t.pos.cartEmptyDesc}
                       </td>
                     </tr>
                   ) : (
@@ -494,7 +494,7 @@ export function PosClient({
                             {item.productName}
                           </div>
                           <div className="text-[10px] font-mono text-zinc-500">
-                            Batch: {item.batchNumber}
+                            {t.pos.colBatch}: {item.batchNumber}
                           </div>
                         </td>
                         <td className="py-3 px-3 text-center">
@@ -503,16 +503,16 @@ export function PosClient({
                           </span>
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                          {item.quantity}
+                          {formatNumber(item.quantity)}
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-zinc-600 dark:text-zinc-400">
-                          {item.totalLiters} L
+                          {formatNumber(item.totalLiters)} L
                         </td>
                         <td className="py-3 px-3 text-right font-mono">
-                          ৳{item.unitRate.toLocaleString()}
+                          {formatCurrency(item.unitRate)}
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                          ৳{item.lineTotal.toLocaleString()}
+                          {formatCurrency(item.lineTotal)}
                         </td>
                         <td className="py-3 px-2 text-center">
                           <button
@@ -535,17 +535,17 @@ export function PosClient({
           <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
               <Truck className="h-4 w-4 text-zinc-500" />
-              Delivery Chalan Credentials (Bengali Transport Format)
+              {t.pos.logisticsTitle}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <label className="text-xs text-zinc-500 font-medium">
-                  Vehicle / Truck No
+                  {t.pos.vehicleNumber}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Dhaka Metro-Ta 11-4567"
+                  placeholder={t.pos.vehiclePlaceholder}
                   value={vehicleNumber}
                   onChange={(e) => setVehicleNumber(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium"
@@ -554,11 +554,11 @@ export function PosClient({
 
               <div className="space-y-1">
                 <label className="text-xs text-zinc-500 font-medium">
-                  Driver / Carrier Name
+                  {t.pos.driverName}
                 </label>
                 <input
                   type="text"
-                  placeholder="Md. Driver"
+                  placeholder={t.pos.driverPlaceholder}
                   value={driverName}
                   onChange={(e) => setDriverName(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium"
@@ -567,7 +567,7 @@ export function PosClient({
 
               <div className="space-y-1">
                 <label className="text-xs text-zinc-500 font-medium">
-                  Delivery Destination
+                  {t.pos.deliveryAddress}
                 </label>
                 <input
                   type="text"
@@ -587,16 +587,16 @@ export function PosClient({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                 <Building2 className="h-4 w-4 text-emerald-600" />
-                Customer & Khata Due Risk
+                {t.pos.customerKhataStatus}
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
-                Cross-Agency
+                {language === "bn" ? "ক্রস-এজেন্সি" : "Cross-Agency"}
               </span>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Select Fleet / Workshop Customer
+                {t.pos.selectCustomer}
               </label>
               <select
                 value={selectedCustomerId}
@@ -604,7 +604,7 @@ export function PosClient({
                 className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-semibold text-zinc-900 dark:text-zinc-100"
               >
                 {customers.length === 0 ? (
-                  <option value="">No customers registered yet</option>
+                  <option value="">{language === "bn" ? "কোনো গ্রাহক নিবন্ধিত নেই" : "No customers registered yet"}</option>
                 ) : (
                   customers.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -618,29 +618,29 @@ export function PosClient({
             {selectedCustomer && (
               <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 text-xs space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Fleet Focus:</span>
+                  <span className="text-zinc-500">{language === "bn" ? "যানবাহন ধরন:" : "Fleet Focus:"}</span>
                   <span className="font-semibold text-zinc-800 dark:text-zinc-200">
                     {selectedCustomer.vehicleTypeFocus.replace("_", " ")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Total Credit Limit:</span>
+                  <span className="text-zinc-500">{t.pos.creditLimit}:</span>
                   <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                    ৳{selectedCustomer.totalCreditLimit.toLocaleString()}
+                    {formatCurrency(selectedCustomer.totalCreditLimit)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">
-                    Current Outstanding Due:
+                    {t.pos.currentDue}:
                   </span>
                   <span className="font-mono font-bold text-red-600 dark:text-red-400">
-                    ৳{selectedCustomer.currentDue.toLocaleString()}
+                    {formatCurrency(selectedCustomer.currentDue)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
-                  <span className="text-zinc-500">Post-Invoice Due:</span>
+                  <span className="text-zinc-500">{language === "bn" ? "ইনভয়েস পরবর্তী মোট বাকি:" : "Post-Invoice Due:"}</span>
                   <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                    ৳{projectedCustomerDue.toLocaleString()}
+                    {formatCurrency(projectedCustomerDue)}
                   </span>
                 </div>
               </div>
@@ -652,10 +652,11 @@ export function PosClient({
                 <div className="flex items-start gap-2">
                   <ShieldAlert className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Credit Limit Breached!</span>
+                    <span className="font-bold">{language === "bn" ? "ক্রেডিট সীমা অতিক্রান্ত!" : "Credit Limit Breached!"}</span>
                     <p className="text-[11px] mt-0.5">
-                      This sale exceeds the customer's maximum approved limit by{" "}
-                      <strong>৳{breachExcess.toLocaleString()}</strong>.
+                      {language === "bn"
+                        ? `এই বিক্রয়ের ফলে অনুমোদিত ঋণসীমা ${formatCurrency(breachExcess)} অতিক্রম করবে।`
+                        : `This sale exceeds the customer's maximum approved limit by ৳${breachExcess.toLocaleString()}.`}
                     </p>
                   </div>
                 </div>
@@ -669,15 +670,18 @@ export function PosClient({
                       className="rounded text-red-600 focus:ring-red-500 cursor-pointer"
                     />
                     <span>
-                      Authorize Management Override (Manager / Super Admin)
+                      {language === "bn"
+                        ? "ম্যানেজার স্পেশাল ক্রেডিট অনুমোদন (ম্যানেজার / সুপার অ্যাডমিন)"
+                        : "Authorize Management Override (Manager / Super Admin)"}
                     </span>
                   </label>
                 ) : (
                   <div className="pt-1 text-[11px] font-semibold text-red-700 dark:text-red-400 flex items-center gap-1.5">
                     <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
                     <span>
-                      Management Approval Required (Cashiers cannot override
-                      credit)
+                      {language === "bn"
+                        ? "ম্যানেজার অনুমোদন আবশ্যক (ক্যাশিয়ার ক্রেডিট ওভাররাইড করতে পারেন না)"
+                        : "Management Approval Required (Cashiers cannot override credit)"}
                     </span>
                   </div>
                 )}
@@ -689,20 +693,20 @@ export function PosClient({
           <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
             <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-red-600" />
-              Settlement & Khata Debit Posting
+              {t.pos.financialSummary}
             </h3>
 
             <div className="space-y-2 text-xs">
               <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                <span>Subtotal ({cartItems.length} items):</span>
+                <span>{t.pos.subtotal} ({formatNumber(cartItems.length)} {language === "bn" ? "আইটেম" : "items"}):</span>
                 <span className="font-mono font-semibold">
-                  ৳{subtotal.toLocaleString()}
+                  {formatCurrency(subtotal)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-zinc-600 dark:text-zinc-400">
-                  Trade Discount:
+                  {t.pos.tradeDiscount}
                 </span>
                 <div className="flex items-center gap-1">
                   <span>৳</span>
@@ -726,10 +730,10 @@ export function PosClient({
 
               <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 pt-2 font-bold text-sm">
                 <span className="text-zinc-900 dark:text-zinc-100">
-                  Net Invoice Total:
+                  {t.pos.netPayable}
                 </span>
                 <span className="font-mono text-red-600 dark:text-red-400">
-                  ৳{totalAmount.toLocaleString()}
+                  {formatCurrency(totalAmount)}
                 </span>
               </div>
             </div>
@@ -738,7 +742,7 @@ export function PosClient({
             <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 space-y-3">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Payment Collection (Now)
+                  {t.pos.receivedAmount}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-xs text-zinc-400 font-mono">
@@ -764,7 +768,7 @@ export function PosClient({
 
               <div className="space-y-1">
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                  Payment Channel
+                  {t.pos.paymentMethod}
                 </label>
                 <select
                   value={paymentMethod}
@@ -773,20 +777,20 @@ export function PosClient({
                   }
                   className="w-full px-3 py-1.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs font-semibold"
                 >
-                  <option value={PaymentMethod.CASH}>Cash On Counter</option>
+                  <option value={PaymentMethod.CASH}>{t.pos.methodCash}</option>
                   <option value={PaymentMethod.BANK_TRANSFER}>
-                    Bank Transfer (IBBL / BRAC)
+                    {t.pos.methodBank}
                   </option>
-                  <option value={PaymentMethod.BKASH}>bKash Merchant</option>
-                  <option value={PaymentMethod.NAGAD}>Nagad</option>
-                  <option value={PaymentMethod.CHEQUE}>Cheque</option>
+                  <option value={PaymentMethod.BKASH}>{t.pos.methodBkash}</option>
+                  <option value={PaymentMethod.NAGAD}>Nagad (MFS)</option>
+                  <option value={PaymentMethod.CHEQUE}>Cheque / Clearing</option>
                 </select>
               </div>
 
               <div className="flex justify-between items-center text-xs font-bold pt-1 border-t border-zinc-200 dark:border-zinc-700">
-                <span className="text-zinc-500">Remaining Khata Due:</span>
+                <span className="text-zinc-500">{t.pos.dueBalance}</span>
                 <span className="font-mono text-red-600 dark:text-red-400 text-sm">
-                  ৳{dueAmount.toLocaleString()}
+                  {formatCurrency(dueAmount)}
                 </span>
               </div>
             </div>
@@ -803,7 +807,9 @@ export function PosClient({
               <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 font-medium">
                 <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
                 <span>
-                  Storekeeper Mode: Invoicing restricted to Cashier & Manager
+                  {language === "bn"
+                    ? "স্টোরকিপার মোড: ইনভয়েসিং শুধুমাত্র ক্যাশিয়ার ও ম্যানেজারের জন্য অনুমোদিত"
+                    : "Storekeeper Mode: Invoicing restricted to Cashier & Manager"}
                 </span>
               </div>
             ) : (
@@ -815,10 +821,10 @@ export function PosClient({
                 className="w-full py-3.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-sm shadow-md shadow-red-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-101"
               >
                 {isSubmitting ? (
-                  <span>Executing Atomic DB Transaction...</span>
+                  <span>{t.pos.processing}</span>
                 ) : (
                   <>
-                    <span>Generate Invoice & Chalan</span>
+                    <span>{t.pos.generateInvoice}</span>
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -851,10 +857,10 @@ export function PosClient({
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-sm sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                    Invoice & Chalan Confirmed!
+                    {t.pos.successTitle}
                   </h3>
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
-                    Stock decremented & customer ledger updated.
+                    {t.pos.successDesc}
                   </p>
                 </div>
               </div>
@@ -874,40 +880,39 @@ export function PosClient({
             <div className="p-4 sm:p-6 space-y-4 flex-1 min-h-0 overflow-y-auto overscroll-contain text-xs font-mono">
               <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-2.5">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Dealership Code:</span>
+                  <span className="text-zinc-500">{language === "bn" ? "ডিলারশিপ কোড:" : "Dealership Code:"}</span>
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">
                     {currentAgency?.code}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Invoice Number:</span>
+                  <span className="text-zinc-500">{t.pos.invoiceNumber}</span>
                   <span className="font-bold text-red-600 dark:text-red-400 text-sm">
                     {successReceipt.invoiceNo || "CTX-2026-0014"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Chalan Number:</span>
+                  <span className="text-zinc-500">{t.pos.chalanNumber}</span>
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">
                     {successReceipt.chalanNo || "CTX-CH-2026-0014"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Total Volume Sold:</span>
+                  <span className="text-zinc-500">{language === "bn" ? "মোট লিটার বিক্রি:" : "Total Volume Sold:"}</span>
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                    {successReceipt.totalLiters || totalLiters} Liters
+                    {formatNumber(successReceipt.totalLiters || totalLiters)} Ltr
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Paid Amount:</span>
+                  <span className="text-zinc-500">{t.pos.paidAmount}</span>
                   <span className="font-bold text-emerald-600">
-                    ৳
-                    {(successReceipt.paidAmount || paidAmount).toLocaleString()}
+                    {formatCurrency(successReceipt.paidAmount || paidAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-2">
-                  <span className="text-zinc-500">New Due Balance:</span>
+                  <span className="text-zinc-500">{t.pos.remainingDue}</span>
                   <span className="font-bold text-red-600">
-                    ৳{(successReceipt.dueAmount || dueAmount).toLocaleString()}
+                    {formatCurrency(successReceipt.dueAmount || dueAmount)}
                   </span>
                 </div>
               </div>
@@ -921,13 +926,13 @@ export function PosClient({
 
             {/* Footer Buttons */}
             <div className="p-4 sm:p-6 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 shrink-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-3">
-              <button
-                onClick={() => window.print()}
+              <Link
+                href={`/invoices/${successReceipt.id || 'inv'}/print`}
                 className="w-full sm:w-auto px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 font-bold text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 flex items-center justify-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer text-center"
               >
                 <Printer className="h-4 w-4" />
-                Print Tax Invoice & Chalan
-              </button>
+                {t.pos.printBtn}
+              </Link>
               <button
                 onClick={() => {
                   setSuccessReceipt(null);
@@ -935,7 +940,7 @@ export function PosClient({
                 }}
                 className="w-full sm:w-auto px-5 py-3 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-xs sm:text-sm hover:bg-black dark:hover:bg-white cursor-pointer shadow-md text-center"
               >
-                Start Next Sale
+                {t.pos.newSaleBtn}
               </button>
             </div>
           </div>

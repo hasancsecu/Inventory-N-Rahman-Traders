@@ -30,6 +30,7 @@ import { AuthUser } from '@/lib/auth-types'
 import { createMasterBatch, getPaginatedInventoryAction } from '@/actions/master-data'
 import { Pagination } from '@/components/ui/pagination'
 import { cleanNumericString, handleNumericFocus } from '@/components/ui/number-input'
+import { useLanguage } from '@/context/language-context'
 
 interface InventoryClientProps {
   currentAgency: AgencySummary | null
@@ -47,6 +48,7 @@ export function InventoryClient({
   currentUser,
 }: InventoryClientProps) {
   const router = useRouter()
+  const { t, language, formatCurrency, formatNumber } = useLanguage()
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN'
   const isManager = currentUser?.role === 'AGENCY_MANAGER' || isSuperAdmin
   const canInward = isManager || currentUser?.role === 'STOREKEEPER'
@@ -296,15 +298,15 @@ export function InventoryClient({
               <Boxes className="h-4 w-4" />
             </span>
             <h1 className="text-xl sm:text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
-              Multi-Dealership Inventory & Batch Control
+              {t.inventory.title}
             </h1>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Scoped to{' '}
+            {language === 'bn' ? 'ডিলারশিপ পরিসীমা:' : 'Scoped to'}{' '}
             <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-              {currentAgency?.name || 'All Dealerships'}
+              {currentAgency?.name || (language === 'bn' ? 'সকল ডিলারশিপ' : 'All Dealerships')}
             </span>{' '}
-            • Real-time batch inventory, inward purchase receipts & FIFO costing.
+            • {t.inventory.subtitle}
           </p>
         </div>
 
@@ -315,7 +317,7 @@ export function InventoryClient({
               className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
             >
               <Truck className="h-4 w-4" />
-              <span>+ Inward Purchase / Add Batch</span>
+              <span>{language === 'bn' ? '+ নতুন চালান ক্রয় / ব্যাচ এন্ট্রি' : '+ Inward Purchase / Add Batch'}</span>
             </button>
           )}
 
@@ -325,7 +327,7 @@ export function InventoryClient({
               className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer"
             >
               <Crown className="h-4 w-4" />
-              <span>Master Data & POs</span>
+              <span>{t.nav.masterData}</span>
             </Link>
           )}
 
@@ -334,7 +336,7 @@ export function InventoryClient({
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all cursor-pointer"
           >
             <ShoppingCart className="h-4 w-4" />
-            <span>POS Billing</span>
+            <span>{t.nav.pos}</span>
           </Link>
         </div>
       </div>
@@ -343,37 +345,37 @@ export function InventoryClient({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
           <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Total Inventory Valuation (FIFO Cost)
+            {language === 'bn' ? 'মোট ইনভেন্টরি মূল্যায়ন (ফিফো দর)' : 'Total Inventory Valuation (FIFO Cost)'}
           </span>
           <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-1">
-            ৳{totalStockValue.toLocaleString()}
+            {formatCurrency(totalStockValue)}
           </div>
           <div className="text-[11px] text-zinc-400 mt-1 font-mono">
-            {products.length} catalog items scoped under {currentAgency?.code || 'All'}
+            {formatNumber(products.length)} {language === 'bn' ? 'টি পণ্য ক্যাটালগ' : 'catalog items'} ({currentAgency?.code || (language === 'bn' ? 'সকল' : 'All')})
           </div>
         </div>
 
         <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
           <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Total Depoted Volume
+            {t.dashboard.kpiTotalLiters}
           </span>
           <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-1">
-            {Math.round(totalVolumeInDepot).toLocaleString()} Liters
+            {formatNumber(Math.round(totalVolumeInDepot))} Liters
           </div>
           <div className="text-[11px] text-zinc-400 mt-1">
-            All warehouse inventory & commercial packaging
+            {language === 'bn' ? 'গুদামের সকল বাণিজ্যিক প্যাকেজিংয়ের মোট ভলিউম' : 'All warehouse inventory & commercial packaging'}
           </div>
         </div>
 
         <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
           <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Low Stock Alerts
+            {t.dashboard.lowStockAlert}
           </span>
           <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">
-            {lowStockCount} Batches
+            {formatNumber(lowStockCount)} {language === 'bn' ? 'টি ব্যাচ' : 'Batches'}
           </div>
           <div className="text-[11px] text-zinc-400 mt-1">
-            Batches at or below reorder threshold
+            {language === 'bn' ? 'পুনঃঅর্ডার সীমার নিচে থাকা ব্যাচ' : 'Batches at or below reorder threshold'}
           </div>
         </div>
       </div>
@@ -384,7 +386,7 @@ export function InventoryClient({
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
           <input
             type="text"
-            placeholder="Search SKU, Brand, Viscosity Grade..."
+            placeholder={t.inventory.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
@@ -404,10 +406,10 @@ export function InventoryClient({
             }}
             className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300"
           >
-            <option value="ALL">All Application Segments</option>
-            <option value="HEAVY_COMMERCIAL">Heavy Commercial (Bus/Truck)</option>
-            <option value="PASSENGER_CAR">Passenger Car</option>
-            <option value="INDUSTRIAL">Industrial & Hydraulic</option>
+            <option value="ALL">{language === 'bn' ? 'সকল অ্যাপ্লিকেশন সেগমেন্ট' : 'All Application Segments'}</option>
+            <option value="HEAVY_COMMERCIAL">{language === 'bn' ? 'হেভি কমার্শিয়াল (বাস/ট্রাক)' : 'Heavy Commercial (Bus/Truck)'}</option>
+            <option value="PASSENGER_CAR">{language === 'bn' ? 'প্যাসেঞ্জার কার ও বাইক' : 'Passenger Car'}</option>
+            <option value="INDUSTRIAL">{language === 'bn' ? 'শিল্প ও হাইড্রোলিক' : 'Industrial & Hydraulic'}</option>
           </select>
         </div>
       </div>
@@ -418,14 +420,14 @@ export function InventoryClient({
           <table className="w-full text-left text-xs min-w-[760px]">
             <thead className="bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 uppercase tracking-wider font-semibold border-b border-zinc-200 dark:border-zinc-800">
               <tr>
-                <th className="py-3 px-4">Product & SKU</th>
-                <th className="py-3 px-4">Viscosity Grade</th>
-                <th className="py-3 px-4">Packaging / UOM</th>
-                <th className="py-3 px-4">Batch Lot Details</th>
-                <th className="py-3 px-4 text-right">Depot Stock</th>
-                <th className="py-3 px-4 text-right">FIFO Cost</th>
-                <th className="py-3 px-4 text-right">Trade Price (TP)</th>
-                <th className="py-3 px-4 text-center">Status / Actions</th>
+                <th className="py-3 px-4">{t.inventory.colProduct}</th>
+                <th className="py-3 px-4">{t.inventory.colGrade}</th>
+                <th className="py-3 px-4">{t.inventory.colPackaging}</th>
+                <th className="py-3 px-4">{t.inventory.colBatches}</th>
+                <th className="py-3 px-4 text-right">{t.inventory.colStock}</th>
+                <th className="py-3 px-4 text-right">{t.inventory.colCost}</th>
+                <th className="py-3 px-4 text-right">{t.inventory.colSellingPrice}</th>
+                <th className="py-3 px-4 text-center">{t.common.status} / {t.common.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200/60 dark:divide-zinc-800/60 font-medium">

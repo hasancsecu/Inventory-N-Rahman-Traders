@@ -66,6 +66,7 @@ import {
 } from '@prisma/client'
 import { Pagination, paginateList } from '@/components/ui/pagination'
 import { cleanNumericString, handleNumericFocus } from '@/components/ui/number-input'
+import { useLanguage } from '@/context/language-context'
 
 interface MasterDataClientProps {
   currentUser: AuthUser
@@ -104,6 +105,7 @@ export function MasterDataClient({
   initialViscosities = [],
   initialPackagingTypes = [],
 }: MasterDataClientProps) {
+  const { t, language } = useLanguage()
   const [activeTab, setActiveTab] = React.useState<TabType>('agencies')
   const [productSubTab, setProductSubTab] = React.useState<ProductSubTab>('catalog')
   const [selectedAgencyFilter, setSelectedAgencyFilter] = React.useState<string>('ALL')
@@ -742,13 +744,13 @@ export function MasterDataClient({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
               <Crown className="w-3.5 h-3.5 text-amber-500" />
-              <span>Super Admin Master Hub • Full CRUD Authority</span>
+              <span>{t.masterData.superAdminBadge}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">
-              Master Data Management Center
+              {t.masterData.masterCenterTitle}
             </h1>
             <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
-              Proprietor-level control to create, update, inspect, and delete data entities across all authorized brand dealerships.
+              {t.masterData.masterCenterSubtitle}
             </p>
           </div>
 
@@ -767,22 +769,22 @@ export function MasterDataClient({
               <Plus className="h-4 w-4" />
               <span>
                 {activeTab === 'agencies'
-                  ? 'Add Dealership'
+                  ? t.masterData.addAgency
                   : activeTab === 'products'
                   ? productSubTab === 'brands'
-                    ? 'Register Brand'
+                    ? t.masterData.addBrand
                     : productSubTab === 'viscosities'
-                    ? 'Register Viscosity Grade'
+                    ? t.masterData.addViscosity
                     : productSubTab === 'packaging'
-                    ? 'Configure Packaging Type'
-                    : 'Add Product SKU'
+                    ? t.masterData.addPackaging
+                    : t.masterData.addProductSku
                   : activeTab === 'batches'
-                  ? 'Add Batch'
+                  ? t.masterData.addBatch
                   : activeTab === 'customers'
-                  ? 'Add Customer'
+                  ? t.masterData.addCustomer
                   : activeTab === 'suppliers'
-                  ? 'Add Supplier'
-                  : 'Add Record'}
+                  ? t.masterData.addSupplier
+                  : '+ Add Record'}
               </span>
             </button>
           </div>
@@ -791,27 +793,27 @@ export function MasterDataClient({
         {/* Global KPI Strip */}
         <div className="mt-6 pt-6 border-t border-zinc-200/80 dark:border-zinc-800/80 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <div className="p-3 rounded-2xl bg-white/70 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Agencies</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t.masterData.tabAgencies}</span>
             <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">{agencies.length}</div>
           </div>
           <div className="p-3 rounded-2xl bg-white/70 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Products</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t.masterData.tabProducts}</span>
             <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">{products.length}</div>
           </div>
           <div className="p-3 rounded-2xl bg-white/70 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Batches</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t.masterData.tabBatches}</span>
             <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">{batches.length}</div>
           </div>
           <div className="p-3 rounded-2xl bg-white/70 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Customers</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t.masterData.tabCustomers}</span>
             <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">{customers.length}</div>
           </div>
           <div className="p-3 rounded-2xl bg-white/70 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Invoices</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t.masterData.tabInvoices}</span>
             <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">{invoices.length}</div>
           </div>
           <div className="p-3 rounded-2xl bg-white/70 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Suppliers</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t.masterData.tabSuppliers}</span>
             <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">{suppliers.length}</div>
           </div>
         </div>
@@ -822,12 +824,12 @@ export function MasterDataClient({
         {/* Entity Tabs */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-zinc-200/80 dark:bg-zinc-800/70 border border-zinc-300 dark:border-zinc-700/60 overflow-x-auto no-scrollbar max-w-full">
           {[
-            { id: 'agencies', label: 'Agencies', icon: Building2, count: agencies.length },
-            { id: 'products', label: 'Products', icon: Boxes, count: products.length },
-            { id: 'batches', label: 'Batches', icon: Layers, count: batches.length },
-            { id: 'customers', label: 'Customers', icon: Users, count: customers.length },
-            { id: 'invoices', label: 'Invoices', icon: FileText, count: invoices.length },
-            { id: 'suppliers', label: 'Suppliers', icon: Truck, count: suppliers.length },
+            { id: 'agencies', label: t.masterData.tabAgencies, icon: Building2, count: agencies.length },
+            { id: 'products', label: t.masterData.tabProducts, icon: Boxes, count: products.length },
+            { id: 'batches', label: t.masterData.tabBatches, icon: Layers, count: batches.length },
+            { id: 'customers', label: t.masterData.tabCustomers, icon: Users, count: customers.length },
+            { id: 'invoices', label: t.masterData.tabInvoices, icon: FileText, count: invoices.length },
+            { id: 'suppliers', label: t.masterData.tabSuppliers, icon: Truck, count: suppliers.length },
           ].map((tab) => {
             const Icon = tab.icon
             const isCurrent = activeTab === tab.id
@@ -862,7 +864,7 @@ export function MasterDataClient({
               onChange={(e) => setSelectedAgencyFilter(e.target.value)}
               className="px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
             >
-              <option value="ALL">All Dealerships</option>
+              <option value="ALL">{language === 'bn' ? 'সকল ডিলারশিপ' : 'All Dealerships'}</option>
               {agencies.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.code} ({a.brandPrincipal})
@@ -875,7 +877,7 @@ export function MasterDataClient({
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
             <input
               type="text"
-              placeholder={`Search ${activeTab}...`}
+              placeholder={t.masterData.searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"

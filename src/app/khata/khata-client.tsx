@@ -26,6 +26,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Pagination, paginateList } from '@/components/ui/pagination'
 import { cleanNumericString, handleNumericFocus } from '@/components/ui/number-input'
+import { useLanguage } from '@/context/language-context'
 
 interface KhataClientProps {
   currentAgency: AgencySummary | null
@@ -55,6 +56,7 @@ export function KhataClient({
   currentUser,
 }: KhataClientProps) {
   const router = useRouter()
+  const { t, language, formatCurrency, formatNumber } = useLanguage()
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN'
   const canCollectPayment = currentUser
     ? currentUser.role === 'SUPER_ADMIN' ||
@@ -292,11 +294,11 @@ export function KhataClient({
               <BookOpenCheck className="h-4 w-4" />
             </span>
             <h1 className="text-xl sm:text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
-              Khata & Customer Credit Management
+              {t.khata.title}
             </h1>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Single-dealership statement audit views and master consolidated ledger across Caltex, Shell, Mobil & Total.
+            {t.khata.subtitle}
           </p>
         </div>
 
@@ -310,7 +312,7 @@ export function KhataClient({
                 : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
           >
-            Consolidated Master
+            {language === 'bn' ? 'সকল এজেন্সি একত্রিত' : 'Consolidated Master'}
           </button>
           {agencies.map((agency) => (
             <button
@@ -322,7 +324,7 @@ export function KhataClient({
                   : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              {agency.code} Audit
+              {agency.code} {language === 'bn' ? 'অডিট' : 'Audit'}
             </button>
           ))}
         </div>
@@ -336,7 +338,7 @@ export function KhataClient({
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search by customer name, phone, fleet..."
+              placeholder={t.khata.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500"

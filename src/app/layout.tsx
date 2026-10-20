@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { cookies } from 'next/headers'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { LanguageProvider } from '@/context/language-context'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { getActiveAgency, getAllAgencies } from '@/actions/agency'
 import { getCurrentUser } from '@/lib/auth'
@@ -17,9 +19,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'LUBRIFLOW ERP • Multi-Dealership Lubricant Distributor System',
+  title: 'লুব্রিফ্লো ইআরপি • LUBRIFLOW ERP • Multi-Dealership Lubricant Distributor System',
   description:
-    'Production-grade multi-entity Inventory, Due Khata & Principal Lifting Management ERP for authorized Lubricants dealerships.',
+    'Production-grade multi-entity Inventory, Due Khata & Principal Lifting Management ERP for authorized Lubricants dealerships in Bangladesh.',
 }
 
 export default async function RootLayout({
@@ -31,9 +33,13 @@ export default async function RootLayout({
   const agencies = await getAllAgencies()
   const currentUser = await getCurrentUser()
 
+  const cookieStore = await cookies()
+  const langCookie = cookieStore.get('lubriflow_lang')?.value
+  const initialLanguage = langCookie === 'en' ? 'en' : 'bn'
+
   return (
     <html
-      lang="en"
+      lang={initialLanguage}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
@@ -44,12 +50,14 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <DashboardHeader
-            currentAgency={currentAgency}
-            agencies={agencies}
-            activeUser={currentUser}
-          />
-          <main className="flex-1 flex flex-col">{children}</main>
+          <LanguageProvider initialLanguage={initialLanguage}>
+            <DashboardHeader
+              currentAgency={currentAgency}
+              agencies={agencies}
+              activeUser={currentUser}
+            />
+            <main className="flex-1 flex flex-col">{children}</main>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

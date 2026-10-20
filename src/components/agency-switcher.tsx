@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { switchActiveAgency, AgencySummary } from '@/actions/agency'
 import Link from 'next/link'
+import { useLanguage } from '@/context/language-context'
 
 interface AgencySwitcherProps {
   currentAgency: AgencySummary | null
@@ -25,6 +26,7 @@ interface AgencySwitcherProps {
 
 export function AgencySwitcher({ currentAgency, agencies, isFullWidth = false }: AgencySwitcherProps) {
   const router = useRouter()
+  const { t, language } = useLanguage()
   const [isOpen, setIsOpen] = React.useState(false)
   const [isPending, startTransition] = React.useTransition()
   const [showDetails, setShowDetails] = React.useState(false)
@@ -102,16 +104,18 @@ export function AgencySwitcher({ currentAgency, agencies, isFullWidth = false }:
           <div className="flex flex-col text-left min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
-                {currentAgency ? currentAgency.code : 'No Agency'}
+                {currentAgency ? currentAgency.code : (language === 'bn' ? 'কোনো এজেন্সি নেই' : 'No Agency')}
               </span>
               <span className="hidden sm:inline font-medium text-xs text-zinc-500 truncate">
-                - {currentAgency?.brandPrincipal?.split(' ')[0] || 'Setup'}
+                - {currentAgency?.brandPrincipal?.split(' ')[0] || (language === 'bn' ? 'সেটআপ' : 'Setup')}
               </span>
               {isPending && <RefreshCw className="h-3 w-3 animate-spin text-zinc-400 shrink-0" />}
             </div>
             <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono truncate">
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${currentBadge.dot}`} />
-              <span className="truncate">{currentAgency?.name || 'Create in Master Data'}</span>
+              <span className="truncate">
+                {currentAgency?.name || (language === 'bn' ? 'মাস্টার ডেটায় তৈরি করুন' : 'Create in Master Data')}
+              </span>
             </div>
           </div>
         </div>
@@ -135,11 +139,11 @@ export function AgencySwitcher({ currentAgency, agencies, isFullWidth = false }:
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
               <span className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
-                Authorized Dealerships ({agencies.length})
+                {language === 'bn' ? 'অনুমোদিত ডিলারশিপসমূহ' : 'Authorized Dealerships'} ({agencies.length})
               </span>
             </div>
             <span className="text-[10px] font-mono font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 rounded-md">
-              Multi-Entity Mode
+              {language === 'bn' ? 'মাল্টি-এজেন্সি মোড' : 'Multi-Entity Mode'}
             </span>
           </div>
 
@@ -148,67 +152,70 @@ export function AgencySwitcher({ currentAgency, agencies, isFullWidth = false }:
             {agencies.length === 0 ? (
               <div className="py-6 px-4 text-center space-y-2">
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  No dealership agencies configured yet.
+                  {language === 'bn'
+                    ? 'এখনো কোনো ডিলারশিপ এজেন্সি কনফিগার করা হয়নি।'
+                    : 'No dealership agencies configured yet.'}
                 </p>
                 <Link
                   href="/admin/master-data"
                   onClick={() => setIsOpen(false)}
                   className="inline-block px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20"
                 >
-                  + Add Dealership in Master Data →
+                  {language === 'bn' ? '+ মাস্টার ডেটায় ডিলারশিপ যোগ করুন →' : '+ Add Dealership in Master Data →'}
                 </Link>
               </div>
             ) : (
               agencies.map((agency) => {
-              const isSelected = agency.id === currentAgency?.id
-              const badge = getBrandBadge(agency.code)
+                const isSelected = agency.id === currentAgency?.id
+                const badge = getBrandBadge(agency.code)
 
-              return (
-                <div
-                  key={agency.id}
-                  onClick={() => handleSelectAgency(agency.id)}
-                  className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700'
-                      : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/40 border border-transparent'
-                  }`}
-                >
+                return (
                   <div
-                    className={`mt-0.5 flex items-center justify-center w-8 h-8 rounded-lg border font-bold text-xs tracking-wider shrink-0 ${badge.bg}`}
+                    key={agency.id}
+                    onClick={() => handleSelectAgency(agency.id)}
+                    className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700'
+                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/40 border border-transparent'
+                    }`}
                   >
-                    {agency.code.slice(0, 3)}
-                  </div>
+                    <div
+                      className={`mt-0.5 flex items-center justify-center w-8 h-8 rounded-lg border font-bold text-xs tracking-wider shrink-0 ${badge.bg}`}
+                    >
+                      {agency.code.slice(0, 3)}
+                    </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate">
-                        {agency.name}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate">
+                          {agency.name}
+                        </div>
+                        {isSelected && (
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" />
+                        )}
                       </div>
-                      {isSelected && (
-                        <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" />
-                      )}
-                    </div>
 
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2">
-                      <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300">
-                        {agency.code}
-                      </span>
-                      <span>•</span>
-                      <span className="truncate">{agency.brandPrincipal}</span>
-                    </div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2">
+                        <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300">
+                          {agency.code}
+                        </span>
+                        <span>•</span>
+                        <span className="truncate">{agency.brandPrincipal}</span>
+                      </div>
 
-                    <div className="mt-1.5 flex flex-wrap gap-1 text-[10px]">
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-mono">
-                        BIN: {agency.binNo}
-                      </span>
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-mono">
-                        TL: {agency.tradeLicense.slice(0, 14)}...
-                      </span>
+                      <div className="mt-1.5 flex flex-wrap gap-1 text-[10px]">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-mono">
+                          BIN: {agency.binNo}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-mono">
+                          TL: {agency.tradeLicense.slice(0, 14)}...
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            }))}
+                )
+              })
+            )}
           </div>
 
           {/* Footer Metadata Drawer Trigger */}
@@ -220,7 +227,9 @@ export function AgencySwitcher({ currentAgency, agencies, isFullWidth = false }:
                 className="text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1 cursor-pointer font-medium"
               >
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                {showDetails ? 'Hide Legal Metadata' : 'View Agency Legal & Bank Details'}
+                {showDetails
+                  ? (language === 'bn' ? 'আইনি তথ্য লুকান' : 'Hide Legal Metadata')
+                  : (language === 'bn' ? 'এজেন্সির আইনি ও ব্যাংক বিবরণ দেখুন' : 'View Agency Legal & Bank Details')}
               </button>
               <span className="text-[10px] text-zinc-400 font-mono">
                 {currentAgency.district}, BD
@@ -233,22 +242,22 @@ export function AgencySwitcher({ currentAgency, agencies, isFullWidth = false }:
             <div className="p-4 bg-zinc-100/70 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 text-xs space-y-2">
               <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                 <FileText className="h-3.5 w-3.5 text-zinc-400" />
-                <span className="font-semibold">Trade License:</span>
+                <span className="font-semibold">{language === 'bn' ? 'ট্রেড লাইসেন্স:' : 'Trade License:'}</span>
                 <span className="font-mono">{currentAgency.tradeLicense}</span>
               </div>
               <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                 <ShieldCheck className="h-3.5 w-3.5 text-zinc-400" />
-                <span className="font-semibold">BIN Number:</span>
+                <span className="font-semibold">{language === 'bn' ? 'বিআইএন নম্বর:' : 'BIN Number:'}</span>
                 <span className="font-mono">{currentAgency.binNo}</span>
               </div>
               <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                 <MapPin className="h-3.5 w-3.5 text-zinc-400" />
-                <span className="font-semibold">Depot Address:</span>
+                <span className="font-semibold">{language === 'bn' ? 'ডিপো ঠিকানা:' : 'Depot Address:'}</span>
                 <span className="truncate">{currentAgency.address}</span>
               </div>
               <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
                 <Phone className="h-3.5 w-3.5 text-zinc-400" />
-                <span className="font-semibold">Hotline:</span>
+                <span className="font-semibold">{language === 'bn' ? 'হটলাইন:' : 'Hotline:'}</span>
                 <span className="font-mono">{currentAgency.phone}</span>
               </div>
             </div>

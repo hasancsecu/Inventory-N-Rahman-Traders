@@ -23,6 +23,7 @@ import { AuthUser, PERMISSION_DEFINITIONS } from '@/lib/auth-types'
 import { createNewUser, createNewRole, toggleUserStatus, getPaginatedUsersAction } from '@/actions/users'
 import { Pagination } from '@/components/ui/pagination'
 import { UserRole } from '@prisma/client'
+import { useLanguage } from '@/context/language-context'
 
 interface UsersClientProps {
   currentUser: AuthUser
@@ -37,6 +38,7 @@ export function UsersClient({
   initialUsers,
   initialRoles,
 }: UsersClientProps) {
+  const { t, language } = useLanguage()
   const [activeTab, setActiveTab] = React.useState<'users' | 'roles'>('users')
   const [users, setUsers] = React.useState(initialUsers)
   const [roles, setRoles] = React.useState(initialRoles)
@@ -233,11 +235,11 @@ export function UsersClient({
               <Shield className="h-4 w-4" />
             </span>
             <h1 className="text-xl sm:text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
-              Enterprise Role & User Administration
+              {t.users.usersHeaderTitle}
             </h1>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Super Admin Governance: Manage staff users, assign authorized brand dealerships, and define granular RBAC permissions.
+            {t.users.usersHeaderSubtitle}
           </p>
         </div>
 
@@ -252,7 +254,7 @@ export function UsersClient({
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            Add New User
+            {t.users.addUser}
           </button>
           <button
             onClick={() => {
@@ -263,7 +265,7 @@ export function UsersClient({
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 font-bold text-xs text-zinc-800 dark:text-zinc-200 shadow-xs cursor-pointer"
           >
             <ShieldCheck className="h-4 w-4 text-amber-500" />
-            Create Custom Role
+            {t.users.createCustomRole}
           </button>
         </div>
       </div>
@@ -279,7 +281,7 @@ export function UsersClient({
           }`}
         >
           <Users className="h-4 w-4" />
-          Staff & Dealership Access ({users.length})
+          {t.users.tabStaff} ({users.length})
         </button>
 
         <button
@@ -291,7 +293,7 @@ export function UsersClient({
           }`}
         >
           <Shield className="h-4 w-4" />
-          Role Definitions & Permissions ({roles.length})
+          {t.users.tabRoles} ({roles.length})
         </button>
       </div>
 
@@ -303,7 +305,7 @@ export function UsersClient({
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search user by name, email, or role..."
+              placeholder={t.users.searchStaffPlaceholder}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
@@ -318,11 +320,11 @@ export function UsersClient({
               <table className="w-full text-left text-xs min-w-[680px]">
                 <thead className="bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 uppercase tracking-wider font-semibold border-b border-zinc-200 dark:border-zinc-800">
                   <tr>
-                    <th className="py-3 px-4">User Details</th>
-                    <th className="py-3 px-4">Primary Role</th>
-                    <th className="py-3 px-4">Authorized Dealership Access</th>
-                    <th className="py-3 px-4 text-center">Status</th>
-                    <th className="py-3 px-4 text-right">Action</th>
+                    <th className="py-3 px-4">{t.users.userDetails}</th>
+                    <th className="py-3 px-4">{t.users.primaryRole}</th>
+                    <th className="py-3 px-4">{t.users.authorizedAccess}</th>
+                    <th className="py-3 px-4 text-center">{t.users.status}</th>
+                    <th className="py-3 px-4 text-right">{t.users.action}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200/60 dark:divide-zinc-800/60 font-medium">
@@ -353,7 +355,7 @@ export function UsersClient({
                         <div className="flex flex-wrap gap-1">
                           {u.allowedAgencyIds?.includes('*') ? (
                             <span className="px-2 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 font-mono text-[10px] font-bold">
-                              All Authorized Dealerships
+                              {language === 'bn' ? 'সকল অনুমোদিত ডিলারশিপ' : 'All Authorized Dealerships'}
                             </span>
                           ) : (
                             (u.allowedAgencyIds || []).map((agencyId: string) => {
@@ -378,7 +380,7 @@ export function UsersClient({
                               : 'bg-zinc-100 text-zinc-500'
                           }`}
                         >
-                          {u.isActive ? 'Active' : 'Deactivated'}
+                          {u.isActive ? t.users.activeStatus : t.users.inactiveStatus}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -387,7 +389,13 @@ export function UsersClient({
                           onClick={() => handleToggleActive(u.id, u.isActive)}
                           className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer"
                         >
-                          {u.isActive ? 'Deactivate' : 'Reactivate'}
+                          {u.isActive
+                            ? language === 'bn'
+                              ? 'নিষ্ক্রিয় করুন'
+                              : 'Deactivate'
+                            : language === 'bn'
+                            ? 'সক্রিয় করুন'
+                            : 'Reactivate'}
                         </button>
                       </td>
                     </tr>

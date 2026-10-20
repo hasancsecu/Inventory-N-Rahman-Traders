@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { AgencySwitcher } from "./agency-switcher";
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageToggle } from "./language-toggle";
 import { AgencySummary } from "@/actions/agency";
 import { AuthUser, userHasPermission } from "@/lib/auth-types";
 import { logoutUser } from "@/actions/auth";
@@ -28,6 +29,7 @@ import {
   canUserSwitchRole,
   canUserAccessMasterData,
 } from "@/lib/navigation";
+import { useLanguage } from "@/context/language-context";
 
 interface DashboardHeaderProps {
   currentAgency: AgencySummary | null;
@@ -44,6 +46,7 @@ export function DashboardHeader({
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement>(null);
+  const { t, language } = useLanguage();
 
   // Close user dropdown on outside click
   React.useEffect(() => {
@@ -82,7 +85,67 @@ export function DashboardHeader({
     : false;
   const canSwitchRole = activeUser ? canUserSwitchRole(activeUser) : false;
 
-  const navItems = activeUser ? getNavigationForUser(activeUser) : [];
+  const rawNavItems = activeUser ? getNavigationForUser(activeUser) : [];
+
+  // Localize navigation items dynamically
+  const navItems = rawNavItems.map((item) => {
+    if (item.href === "/") {
+      return {
+        ...item,
+        label: t.nav.overview,
+        description: t.nav.overviewDesc,
+      };
+    }
+    if (item.href === "/pos") {
+      return {
+        ...item,
+        label: t.nav.pos,
+        badge: t.nav.posBadge,
+        description: t.nav.posDesc,
+      };
+    }
+    if (item.href === "/inventory") {
+      return {
+        ...item,
+        label: t.nav.inventory,
+        badge: t.nav.inventoryBadge,
+        description: t.nav.inventoryDesc,
+      };
+    }
+    if (item.href === "/khata") {
+      return {
+        ...item,
+        label: t.nav.khata,
+        badge: t.nav.khataBadge,
+        description: t.nav.khataDesc,
+      };
+    }
+    if (item.href === "/analytics") {
+      return {
+        ...item,
+        label: t.nav.analytics,
+        badge: t.nav.analyticsBadge,
+        description: t.nav.analyticsDesc,
+      };
+    }
+    if (item.href === "/admin/master-data") {
+      return {
+        ...item,
+        label: t.nav.masterData,
+        badge: t.nav.masterDataBadge,
+        description: t.nav.masterDataDesc,
+      };
+    }
+    if (item.href === "/admin/users") {
+      return {
+        ...item,
+        label: t.nav.users,
+        badge: t.nav.usersBadge,
+        description: t.nav.usersDesc,
+      };
+    }
+    return item;
+  });
 
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
@@ -98,6 +161,10 @@ export function DashboardHeader({
         return "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700";
     }
   };
+
+  const localizedRole = activeUser
+    ? t.roles[activeUser.role as keyof typeof t.roles] || activeUser.role
+    : "";
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/80 dark:border-zinc-800/80 shadow-xs transition-colors">
@@ -122,7 +189,9 @@ export function DashboardHeader({
                 </span>
               </div>
               <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 hidden sm:block tracking-tight mt-0.5">
-                Multi-Brand Distributorship
+                {language === "bn"
+                  ? "অনুমোদিত লুব্রিকেন্ট পরিবেশক"
+                  : "Multi-Brand Distributorship"}
               </span>
             </div>
           </Link>
@@ -142,16 +211,18 @@ export function DashboardHeader({
         <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100/80 dark:bg-zinc-900/80 border border-zinc-200/70 dark:border-zinc-800/70 text-xs font-medium text-zinc-600 dark:text-zinc-300">
           <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-            FY 2026-27
+            {language === "bn" ? "অর্থবছর ২০২৬-২৭" : "FY 2026-27"}
           </span>
           <span className="text-zinc-400 dark:text-zinc-600">•</span>
-          <span className="text-zinc-500 dark:text-zinc-400">Scope:</span>
+          <span className="text-zinc-500 dark:text-zinc-400">
+            {language === "bn" ? "ডিলারশিপ:" : "Scope:"}
+          </span>
           <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
-            {currentAgency?.code || "MULTI-AGENCY"}
+            {currentAgency?.code || (language === "bn" ? "সকল এজেন্সি" : "MULTI-AGENCY")}
           </span>
         </div>
 
-        {/* Right: Controls & User Profile */}
+        {/* Right: Controls, Language Selector & User Profile */}
         <div className="flex items-center gap-1.5 sm:gap-3">
           {/* Mobile Dealership Scope Pill Button */}
           <button
@@ -165,6 +236,10 @@ export function DashboardHeader({
             </span>
           </button>
 
+          {/* Bilingual Language Switcher (Bangla / English) */}
+          <LanguageToggle />
+
+          {/* Theme Toggle */}
           <ThemeToggle />
 
           {/* User Persona & Profile Pill (Desktop & Tablet) */}
@@ -189,7 +264,7 @@ export function DashboardHeader({
                     {activeUser.name}
                   </span>
                   <span className="text-[10px] text-zinc-500 font-mono">
-                    {activeUser.roleTitle || activeUser.role}
+                    {localizedRole}
                   </span>
                 </div>
 
@@ -198,7 +273,7 @@ export function DashboardHeader({
                     activeUser.role,
                   )}`}
                 >
-                  {activeUser.role}
+                  {localizedRole}
                 </span>
 
                 <ChevronDown
@@ -229,10 +304,10 @@ export function DashboardHeader({
                           activeUser.role,
                         )}`}
                       >
-                        {activeUser.role}
+                        {localizedRole}
                       </span>
                       <span className="text-[10px] text-zinc-500">
-                        • {activeUser.roleTitle || "Authorized Staff"}
+                        • {activeUser.roleTitle || (language === "bn" ? "অনুমোদিত কর্মী" : "Authorized Staff")}
                       </span>
                     </div>
                   </div>
@@ -247,7 +322,7 @@ export function DashboardHeader({
                       >
                         <div className="flex items-center gap-2.5">
                           <Database className="h-4 w-4 text-amber-500" />
-                          <span>Master Data CRUD Hub</span>
+                          <span>{t.header.masterDataHub}</span>
                         </div>
                         <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-mono">
                           ALL
@@ -264,7 +339,7 @@ export function DashboardHeader({
                       >
                         <div className="flex items-center gap-2.5">
                           <Shield className="h-4 w-4 text-red-600 dark:text-red-400" />
-                          <span>Role & User Governance</span>
+                          <span>{t.users.title}</span>
                         </div>
                         <span className="text-[9px] font-mono text-zinc-400">
                           RBAC
@@ -281,7 +356,7 @@ export function DashboardHeader({
                       >
                         <div className="flex items-center gap-2.5">
                           <KeyRound className="h-4 w-4 text-amber-500" />
-                          <span>Switch Staff Persona</span>
+                          <span>{t.header.switchRole}</span>
                         </div>
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500">
                           Admin
@@ -294,7 +369,7 @@ export function DashboardHeader({
                       className="w-full flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 font-medium cursor-pointer transition-colors"
                     >
                       <LogOut className="h-4 w-4" />
-                      <span>Sign Out</span>
+                      <span>{t.header.logout}</span>
                     </button>
                   </div>
                 </div>
@@ -306,7 +381,7 @@ export function DashboardHeader({
               className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/30 transition-all cursor-pointer"
             >
               <KeyRound className="h-3.5 w-3.5" />
-              <span>Sign In</span>
+              <span>{t.login.submitBtn}</span>
             </Link>
           )}
 
@@ -393,6 +468,14 @@ export function DashboardHeader({
 
           {/* Drawer container */}
           <div className="relative z-40 md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl p-4 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+            {/* Language Switcher Bar in Mobile Drawer */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-100/80 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800">
+              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                {t.common.switchLanguage}
+              </span>
+              <LanguageToggle />
+            </div>
+
             {/* User Profile Card */}
             {activeUser ? (
               <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
@@ -414,7 +497,7 @@ export function DashboardHeader({
                           activeUser.role,
                         )}`}
                       >
-                        {activeUser.role}
+                        {localizedRole}
                       </span>
                       <span className="truncate font-mono">
                         {activeUser.email}
@@ -441,7 +524,7 @@ export function DashboardHeader({
               >
                 <div className="flex items-center gap-2.5">
                   <KeyRound className="h-4 w-4" />
-                  <span>Sign In to Dealership</span>
+                  <span>{t.login.submitBtn}</span>
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/20">
                   Login →
@@ -453,11 +536,11 @@ export function DashboardHeader({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                  Active Dealership Scope
+                  {t.header.activeTenancy}
                 </span>
                 <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Sync
+                  {language === "bn" ? "লাইভ সমন্বয়" : "Live Sync"}
                 </span>
               </div>
               <AgencySwitcher
@@ -473,7 +556,7 @@ export function DashboardHeader({
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                     <Crown className="h-3.5 w-3.5 text-amber-500" />
-                    Admin Control Suite
+                    {language === "bn" ? "অ্যাডমিন কন্ট্রোল স্যুট" : "Admin Control Suite"}
                   </span>
                   <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300">
                     Full CRUD
@@ -487,10 +570,10 @@ export function DashboardHeader({
                   >
                     <Database className="h-4 w-4 mx-auto text-amber-500 mb-1" />
                     <div className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">
-                      Master Data
+                      {t.header.masterDataHub}
                     </div>
                     <div className="text-[9px] text-zinc-400">
-                      Products, Agencies
+                      {language === "bn" ? "পণ্য, এজেন্সি" : "Products, Agencies"}
                     </div>
                   </Link>
                   {canManageUsers && (
@@ -501,7 +584,7 @@ export function DashboardHeader({
                     >
                       <Shield className="h-4 w-4 mx-auto text-red-500 mb-1" />
                       <div className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">
-                        Users & Roles
+                        {t.users.title}
                       </div>
                       <div className="text-[9px] text-zinc-400">
                         RBAC Security
@@ -515,7 +598,7 @@ export function DashboardHeader({
             {/* Navigation Menu */}
             <div className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 px-1">
-                Operational Modules
+                {language === "bn" ? "অপারেশনাল মডিউলসমূহ" : "Operational Modules"}
               </span>
               <div className="space-y-1.5 pt-1">
                 {navItems.map((item) => {
@@ -594,7 +677,7 @@ export function DashboardHeader({
                 >
                   <div className="flex items-center gap-2.5">
                     <KeyRound className="h-4 w-4 text-amber-500" />
-                    <span>Switch Staff Persona</span>
+                    <span>{t.header.switchRole}</span>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200">
                     Super Admin
@@ -615,7 +698,7 @@ export function DashboardHeader({
                 >
                   <div className="flex items-center gap-2.5">
                     <LogOut className="h-4 w-4" />
-                    <span>Sign Out of Dealership</span>
+                    <span>{t.header.logout}</span>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300">
                     Logout
