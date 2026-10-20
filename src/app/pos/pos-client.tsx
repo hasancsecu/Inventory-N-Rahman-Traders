@@ -16,12 +16,16 @@ import {
   ArrowRight,
   Printer,
   Boxes,
+  ArrowLeft,
 } from "lucide-react";
 import { createDealershipInvoice } from "@/actions/invoice";
 import { AgencySummary } from "@/actions/agency";
 import { UnitOfMeasure, PaymentMethod } from "@prisma/client";
 import { AuthUser } from "@/lib/auth-types";
-import { cleanNumericString, handleNumericFocus } from "@/components/ui/number-input";
+import {
+  cleanNumericString,
+  handleNumericFocus,
+} from "@/components/ui/number-input";
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
 import { toast } from "@/components/ui/toast";
@@ -162,7 +166,7 @@ export function PosClient({
         language === "bn"
           ? "পরিমাণ শূন্যের বেশি হতে হবে।"
           : "Quantity must be greater than zero.",
-        { title: language === "bn" ? "সতর্কবার্তা" : "Quantity Warning" }
+        { title: language === "bn" ? "সতর্কবার্তা" : "Quantity Warning" },
       );
       return;
     }
@@ -172,7 +176,7 @@ export function PosClient({
         language === "bn"
           ? `পর্যাপ্ত স্টক নেই! ব্যাচে অবশিষ্ট: ${selectedBatch.stockQuantity}`
           : `Insufficient stock! Available in batch: ${selectedBatch.stockQuantity}`,
-        { title: language === "bn" ? "স্টক ঘাটতি" : "Stock Warning" }
+        { title: language === "bn" ? "স্টক ঘাটতি" : "Stock Warning" },
       );
       return;
     }
@@ -196,8 +200,29 @@ export function PosClient({
     setQuantity(1);
   };
 
+  // Mobile Step Navigation Tab ('items' or 'checkout')
+  const [mobileTab, setMobileTab] = React.useState<"items" | "checkout">(
+    "items",
+  );
+
   const handleRemoveItem = (index: number) => {
     setCartItems(cartItems.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateItemQuantity = (index: number, newQty: number) => {
+    if (newQty < 1) return;
+    setCartItems((prev) =>
+      prev.map((item, idx) => {
+        if (idx !== index) return item;
+        const clampedQty = Math.min(newQty, item.availableStock || 9999);
+        return {
+          ...item,
+          quantity: clampedQty,
+          totalLiters: clampedQty * item.unitLiters,
+          lineTotal: clampedQty * item.unitRate,
+        };
+      }),
+    );
   };
 
   // Submit Invoice via Server Action
@@ -279,19 +304,26 @@ export function PosClient({
             <span className="font-bold font-mono text-zinc-800 dark:text-zinc-200">
               {currentAgency?.name} ({currentAgency?.code})
             </span>{" "}
-            • {language === "bn" ? "ডিলারশিপ ভিত্তিক স্বয়ংক্রিয় চালান সিকোয়েন্স সক্রিয়।" : "Sequential numbering enforced per dealership."}
+            •{" "}
+            {language === "bn"
+              ? "ডিলারশিপ ভিত্তিক স্বয়ংক্রিয় চালান সিকোয়েন্স সক্রিয়।"
+              : "Sequential numbering enforced per dealership."}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs">
-            <span className="text-zinc-400">{language === "bn" ? "মোট লিটার:" : "Total Liters:"}</span>{" "}
+            <span className="text-zinc-400">
+              {language === "bn" ? "মোট লিটার:" : "Total Liters:"}
+            </span>{" "}
             <strong className="font-mono text-red-600 dark:text-red-400">
               {formatNumber(totalLiters)} Ltr
             </strong>
           </div>
           <div className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs">
-            <span className="text-zinc-400">{language === "bn" ? "আইটেম সংখ্যা:" : "Items Count:"}</span>{" "}
+            <span className="text-zinc-400">
+              {language === "bn" ? "আইটেম সংখ্যা:" : "Items Count:"}
+            </span>{" "}
             <strong className="font-mono text-zinc-900 dark:text-zinc-100">
               {formatNumber(cartItems.length)}
             </strong>
@@ -315,13 +347,57 @@ export function PosClient({
         </div>
       )}
 
+      {/* Mobile 2-Step Segmented Navigation Control */}
+      <div className="lg:hidden grid grid-cols-2 p-1.5 rounded-2xl bg-zinc-200/80 dark:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700/80 shadow-xs">
+        <button
+          type="button"
+          onClick={() => setMobileTab("items")}
+          className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 touch-manipulation cursor-pointer ${
+            mobileTab === "items"
+              ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm"
+              : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900"
+          }`}
+        >
+          <ShoppingCart className="h-4 w-4 text-red-600" />
+          <span>
+            {language === "bn" ? "১. পণ্য ও কার্ট" : "1. Items & Cart"}
+          </span>
+          {cartItems.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white font-mono text-[10px] font-bold">
+              {cartItems.length}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab("checkout")}
+          className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 touch-manipulation cursor-pointer ${
+            mobileTab === "checkout"
+              ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm"
+              : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900"
+          }`}
+        >
+          <CreditCard className="h-4 w-4 text-emerald-600" />
+          <span>
+            {language === "bn" ? "২. গ্রাহক ও পরিশোধ" : "2. Pay & Bill"}
+          </span>
+          {totalAmount > 0 && (
+            <span className="font-mono text-[10px] text-red-600 dark:text-red-400 font-bold">
+              ৳{Number(totalAmount).toLocaleString()}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Main Grid: Left (Builder & Cart) + Right (Customer & Financial Settlement) */}
       <form
         onSubmit={handleSubmitInvoice}
         className="grid grid-cols-1 lg:grid-cols-12 gap-6"
       >
         {/* LEFT COLUMN: Item Builder & Cart (8 cols) */}
-        <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+        <div
+          className={`lg:col-span-7 xl:col-span-8 space-y-6 ${mobileTab === "items" ? "block" : "hidden lg:block"}`}
+        >
           {/* Line Item Selector Box */}
           <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
@@ -330,7 +406,9 @@ export function PosClient({
                 {t.pos.selectProduct}
               </div>
               <span className="text-[11px] text-zinc-400 font-mono">
-                {language === "bn" ? "ডিলারশিপ পণ্য তালিকা" : "Dealership Scoped Catalog"}
+                {language === "bn"
+                  ? "ডিলারশিপ পণ্য তালিকা"
+                  : "Dealership Scoped Catalog"}
               </span>
             </div>
 
@@ -346,7 +424,11 @@ export function PosClient({
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 >
                   {products.length === 0 ? (
-                    <option value="">{language === "bn" ? "ক্যাটালগে কোনো পণ্য নেই" : "No products available in catalog"}</option>
+                    <option value="">
+                      {language === "bn"
+                        ? "ক্যাটালগে কোনো পণ্য নেই"
+                        : "No products available in catalog"}
+                    </option>
                   ) : (
                     products.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -363,8 +445,15 @@ export function PosClient({
                   <span>{t.pos.selectBatch}</span>
                   {selectedBatch && (
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono">
-                      {language === "bn" ? "মজুত অবশিষ্ট:" : "Available:"} {formatNumber(selectedBatch.stockQuantity)}{" "}
-                      {selectedProduct?.uom === "LITERS" ? (language === "bn" ? "লিটার" : "Ltr") : (language === "bn" ? "পিস" : "Pcs")}
+                      {language === "bn" ? "মজুত অবশিষ্ট:" : "Available:"}{" "}
+                      {formatNumber(selectedBatch.stockQuantity)}{" "}
+                      {selectedProduct?.uom === "LITERS"
+                        ? language === "bn"
+                          ? "লিটার"
+                          : "Ltr"
+                        : language === "bn"
+                          ? "পিস"
+                          : "Pcs"}
                     </span>
                   )}
                 </label>
@@ -374,12 +463,18 @@ export function PosClient({
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 >
                   {availableBatches.length === 0 ? (
-                    <option value="">{language === "bn" ? "কোনো সক্রিয় ব্যাচ মজুত নেই" : "No stock batches available"}</option>
+                    <option value="">
+                      {language === "bn"
+                        ? "কোনো সক্রিয় ব্যাচ মজুত নেই"
+                        : "No stock batches available"}
+                    </option>
                   ) : (
                     availableBatches.map((b: any) => (
                       <option key={b.id} value={b.id}>
-                        {b.batchNumber} • {language === "bn" ? "দর:" : "TP:"} {formatCurrency(b.tradePrice)}{" "}
-                        ({language === "bn" ? "স্টক:" : "Stock:"} {formatNumber(b.stockQuantity)})
+                        {b.batchNumber} • {language === "bn" ? "দর:" : "TP:"}{" "}
+                        {formatCurrency(b.tradePrice)} (
+                        {language === "bn" ? "স্টক:" : "Stock:"}{" "}
+                        {formatNumber(b.stockQuantity)})
                       </option>
                     ))
                   )}
@@ -401,12 +496,12 @@ export function PosClient({
                   placeholder="1"
                   onFocus={handleNumericFocus}
                   onChange={(e) => {
-                    const cleaned = cleanNumericString(e.target.value)
-                    e.target.value = cleaned
-                    setQuantity(cleaned === '' ? '' : Number(cleaned))
+                    const cleaned = cleanNumericString(e.target.value);
+                    e.target.value = cleaned;
+                    setQuantity(cleaned === "" ? "" : Number(cleaned));
                   }}
                   onBlur={() => {
-                    if (!quantity || Number(quantity) < 1) setQuantity(1)
+                    if (!quantity || Number(quantity) < 1) setQuantity(1);
                   }}
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100"
                 />
@@ -422,12 +517,12 @@ export function PosClient({
                   placeholder="0"
                   onFocus={handleNumericFocus}
                   onChange={(e) => {
-                    const cleaned = cleanNumericString(e.target.value)
-                    e.target.value = cleaned
-                    setUnitRate(cleaned === '' ? '' : Number(cleaned))
+                    const cleaned = cleanNumericString(e.target.value);
+                    e.target.value = cleaned;
+                    setUnitRate(cleaned === "" ? "" : Number(cleaned));
                   }}
                   onBlur={() => {
-                    if (unitRate === '') setUnitRate(0)
+                    if (unitRate === "") setUnitRate(0);
                   }}
                   className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100"
                 />
@@ -439,7 +534,9 @@ export function PosClient({
                 </label>
                 <div className="px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-sm font-mono font-bold text-zinc-700 dark:text-zinc-300">
                   {selectedProduct
-                    ? formatNumber((Number(quantity) || 0) * selectedProduct.litersPerUnit)
+                    ? formatNumber(
+                        (Number(quantity) || 0) * selectedProduct.litersPerUnit,
+                      )
                     : 0}{" "}
                   L
                 </div>
@@ -469,14 +566,19 @@ export function PosClient({
               </span>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs min-w-[540px]">
                 <thead className="bg-zinc-50 dark:bg-zinc-800/40 text-zinc-500 font-semibold uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-800">
                   <tr>
                     <th className="py-2.5 px-3">{t.pos.colProduct}</th>
-                    <th className="py-2.5 px-3 text-center">{t.pos.packaging}</th>
+                    <th className="py-2.5 px-3 text-center">
+                      {t.pos.packaging}
+                    </th>
                     <th className="py-2.5 px-3 text-right">{t.pos.colQty}</th>
-                    <th className="py-2.5 px-3 text-right">{t.pos.colLiters}</th>
+                    <th className="py-2.5 px-3 text-right">
+                      {t.pos.colLiters}
+                    </th>
                     <th className="py-2.5 px-3 text-right">{t.pos.colRate}</th>
                     <th className="py-2.5 px-3 text-right">{t.pos.colTotal}</th>
                     <th className="py-2.5 px-2 text-center"></th>
@@ -538,6 +640,85 @@ export function PosClient({
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Responsive Cards for Cart Items with Touch Steppers */}
+            <div className="sm:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+              {cartItems.length === 0 ? (
+                <div className="p-8 text-center text-zinc-400 text-xs">
+                  {t.pos.cartEmptyDesc}
+                </div>
+              ) : (
+                cartItems.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 space-y-2.5 bg-white dark:bg-zinc-900"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                          {item.productName}
+                        </div>
+                        <div className="text-[10px] font-mono text-zinc-500 mt-0.5">
+                          {t.pos.colBatch}: {item.batchNumber} •{" "}
+                          {item.packaging.replace("_", " ")}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(idx)}
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer touch-manipulation"
+                        title="Remove item"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      {/* Stepper for Quantity */}
+                      <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 p-0.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleUpdateItemQuantity(idx, item.quantity - 1)
+                          }
+                          disabled={item.quantity <= 1}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-700 dark:text-zinc-200 disabled:opacity-30 font-bold text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer active:scale-95 touch-manipulation"
+                          aria-label="Decrease quantity"
+                        >
+                          -
+                        </button>
+                        <span className="w-9 text-center font-mono font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleUpdateItemQuantity(idx, item.quantity + 1)
+                          }
+                          disabled={
+                            item.quantity >= (item.availableStock || 9999)
+                          }
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-700 dark:text-zinc-200 disabled:opacity-30 font-bold text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer active:scale-95 touch-manipulation"
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="font-mono font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                          {formatCurrency(item.lineTotal)}
+                        </div>
+                        <div className="text-[10px] text-zinc-500 font-mono">
+                          {formatCurrency(item.unitRate)} × {item.quantity} (
+                          {formatNumber(item.totalLiters)} L)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Delivery & Chalan Details */}
@@ -587,10 +768,55 @@ export function PosClient({
               </div>
             </div>
           </div>
+
+          {/* Mobile Bottom Quick Checkout Bar when cart has items */}
+          {cartItems.length > 0 && (
+            <div className="lg:hidden p-4 rounded-2xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xl flex items-center justify-between gap-3 sticky bottom-20 z-20">
+              <div className="min-w-0">
+                <div className="text-[11px] text-zinc-400 dark:text-zinc-600 font-medium">
+                  {cartItems.length} {language === "bn" ? "টি আইটেম" : "items"}{" "}
+                  • {formatNumber(totalLiters)} L
+                </div>
+                <div className="text-base font-bold font-mono text-emerald-400 dark:text-emerald-600 truncate">
+                  {formatCurrency(totalAmount)}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileTab("checkout")}
+                className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shrink-0 cursor-pointer touch-manipulation active:scale-95 transition-all"
+              >
+                <span>
+                  {language === "bn" ? "বিল পরিশোধে যান" : "Proceed to Pay"}
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN: Customer Khata, Credit Risk & Settlement (4 cols) */}
-        <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+        <div
+          className={`lg:col-span-5 xl:col-span-4 space-y-6 ${mobileTab === "checkout" ? "block" : "hidden lg:block"}`}
+        >
+          {/* Mobile Back to Items navigation header */}
+          <div className="lg:hidden flex items-center justify-between p-1">
+            <button
+              type="button"
+              onClick={() => setMobileTab("items")}
+              className="px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer touch-manipulation active:scale-95"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>
+                {language === "bn" ? "পণ্য তালিকায় ফিরুন" : "Back to Items"}
+              </span>
+            </button>
+            <span className="text-xs font-mono font-bold text-zinc-500">
+              {cartItems.length} {language === "bn" ? "আইটেম" : "items"} (
+              {formatCurrency(totalAmount)})
+            </span>
+          </div>
+
           {/* Customer Selection & Credit Risk Alert */}
           <div className="p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
@@ -613,7 +839,11 @@ export function PosClient({
                 className="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-semibold text-zinc-900 dark:text-zinc-100"
               >
                 {customers.length === 0 ? (
-                  <option value="">{language === "bn" ? "কোনো গ্রাহক নিবন্ধিত নেই" : "No customers registered yet"}</option>
+                  <option value="">
+                    {language === "bn"
+                      ? "কোনো গ্রাহক নিবন্ধিত নেই"
+                      : "No customers registered yet"}
+                  </option>
                 ) : (
                   customers.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -627,7 +857,9 @@ export function PosClient({
             {selectedCustomer && (
               <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 text-xs space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">{language === "bn" ? "যানবাহন ধরন:" : "Fleet Focus:"}</span>
+                  <span className="text-zinc-500">
+                    {language === "bn" ? "যানবাহন ধরন:" : "Fleet Focus:"}
+                  </span>
                   <span className="font-semibold text-zinc-800 dark:text-zinc-200">
                     {selectedCustomer.vehicleTypeFocus.replace("_", " ")}
                   </span>
@@ -639,15 +871,17 @@ export function PosClient({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">
-                    {t.pos.currentDue}:
-                  </span>
+                  <span className="text-zinc-500">{t.pos.currentDue}:</span>
                   <span className="font-mono font-bold text-red-600 dark:text-red-400">
                     {formatCurrency(selectedCustomer.currentDue)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
-                  <span className="text-zinc-500">{language === "bn" ? "ইনভয়েস পরবর্তী মোট বাকি:" : "Post-Invoice Due:"}</span>
+                  <span className="text-zinc-500">
+                    {language === "bn"
+                      ? "ইনভয়েস পরবর্তী মোট বাকি:"
+                      : "Post-Invoice Due:"}
+                  </span>
                   <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
                     {formatCurrency(projectedCustomerDue)}
                   </span>
@@ -661,7 +895,11 @@ export function PosClient({
                 <div className="flex items-start gap-2">
                   <ShieldAlert className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">{language === "bn" ? "ক্রেডিট সীমা অতিক্রান্ত!" : "Credit Limit Breached!"}</span>
+                    <span className="font-bold">
+                      {language === "bn"
+                        ? "ক্রেডিট সীমা অতিক্রান্ত!"
+                        : "Credit Limit Breached!"}
+                    </span>
                     <p className="text-[11px] mt-0.5">
                       {language === "bn"
                         ? `এই বিক্রয়ের ফলে অনুমোদিত ঋণসীমা ${formatCurrency(breachExcess)} অতিক্রম করবে।`
@@ -707,7 +945,10 @@ export function PosClient({
 
             <div className="space-y-2 text-xs">
               <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                <span>{t.pos.subtotal} ({formatNumber(cartItems.length)} {language === "bn" ? "আইটেম" : "items"}):</span>
+                <span>
+                  {t.pos.subtotal} ({formatNumber(cartItems.length)}{" "}
+                  {language === "bn" ? "আইটেম" : "items"}):
+                </span>
                 <span className="font-mono font-semibold">
                   {formatCurrency(subtotal)}
                 </span>
@@ -721,16 +962,16 @@ export function PosClient({
                   <span>৳</span>
                   <input
                     type="number"
-                    value={discount === 0 ? '' : discount}
+                    value={discount === 0 ? "" : discount}
                     placeholder="0"
                     onFocus={handleNumericFocus}
                     onChange={(e) => {
-                      const cleaned = cleanNumericString(e.target.value)
-                      e.target.value = cleaned
-                      setDiscount(cleaned === '' ? '' : Number(cleaned))
+                      const cleaned = cleanNumericString(e.target.value);
+                      e.target.value = cleaned;
+                      setDiscount(cleaned === "" ? "" : Number(cleaned));
                     }}
                     onBlur={() => {
-                      if (discount === '') setDiscount(0)
+                      if (discount === "") setDiscount(0);
                     }}
                     className="w-24 px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-right font-mono font-bold text-xs"
                   />
@@ -749,26 +990,44 @@ export function PosClient({
 
             {/* Immediate Payment Input */}
             <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  {t.pos.receivedAmount}
-                </label>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    {t.pos.receivedAmount}
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaidAmount(totalAmount)}
+                      className="px-2 py-0.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold cursor-pointer touch-manipulation active:scale-95"
+                    >
+                      ⚡ {language === "bn" ? "সম্পূর্ণ পরিশোধ" : "Full Paid"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaidAmount(0)}
+                      className="px-2 py-0.5 rounded-lg bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-200 text-[11px] font-bold cursor-pointer touch-manipulation active:scale-95"
+                    >
+                      {language === "bn" ? "বাকি (৳০)" : "Full Due (৳0)"}
+                    </button>
+                  </div>
+                </div>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-xs text-zinc-400 font-mono">
                     ৳
                   </span>
                   <input
                     type="number"
-                    value={paidAmount === 0 ? '' : paidAmount}
+                    value={paidAmount === 0 ? "" : paidAmount}
                     placeholder="0"
                     onFocus={handleNumericFocus}
                     onChange={(e) => {
-                      const cleaned = cleanNumericString(e.target.value)
-                      e.target.value = cleaned
-                      setPaidAmount(cleaned === '' ? '' : Number(cleaned))
+                      const cleaned = cleanNumericString(e.target.value);
+                      e.target.value = cleaned;
+                      setPaidAmount(cleaned === "" ? "" : Number(cleaned));
                     }}
                     onBlur={() => {
-                      if (paidAmount === '') setPaidAmount(0)
+                      if (paidAmount === "") setPaidAmount(0);
                     }}
                     className="w-full pl-7 pr-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400"
                   />
@@ -790,9 +1049,13 @@ export function PosClient({
                   <option value={PaymentMethod.BANK_TRANSFER}>
                     {t.pos.methodBank}
                   </option>
-                  <option value={PaymentMethod.BKASH}>{t.pos.methodBkash}</option>
+                  <option value={PaymentMethod.BKASH}>
+                    {t.pos.methodBkash}
+                  </option>
                   <option value={PaymentMethod.NAGAD}>Nagad (MFS)</option>
-                  <option value={PaymentMethod.CHEQUE}>Cheque / Clearing</option>
+                  <option value={PaymentMethod.CHEQUE}>
+                    Cheque / Clearing
+                  </option>
                 </select>
               </div>
 
@@ -889,7 +1152,9 @@ export function PosClient({
             <div className="p-4 sm:p-6 space-y-4 flex-1 min-h-0 overflow-y-auto overscroll-contain text-xs font-mono">
               <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-2.5">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">{language === "bn" ? "ডিলারশিপ কোড:" : "Dealership Code:"}</span>
+                  <span className="text-zinc-500">
+                    {language === "bn" ? "ডিলারশিপ কোড:" : "Dealership Code:"}
+                  </span>
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">
                     {currentAgency?.code}
                   </span>
@@ -907,9 +1172,14 @@ export function PosClient({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">{language === "bn" ? "মোট লিটার বিক্রি:" : "Total Volume Sold:"}</span>
+                  <span className="text-zinc-500">
+                    {language === "bn"
+                      ? "মোট লিটার বিক্রি:"
+                      : "Total Volume Sold:"}
+                  </span>
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                    {formatNumber(successReceipt.totalLiters || totalLiters)} Ltr
+                    {formatNumber(successReceipt.totalLiters || totalLiters)}{" "}
+                    Ltr
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -936,7 +1206,7 @@ export function PosClient({
             {/* Footer Buttons */}
             <div className="p-4 sm:p-6 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 shrink-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-3">
               <Link
-                href={`/invoices/${successReceipt.id || 'inv'}/print`}
+                href={`/invoices/${successReceipt.id || "inv"}/print`}
                 className="w-full sm:w-auto px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 font-bold text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 flex items-center justify-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer text-center"
               >
                 <Printer className="h-4 w-4" />

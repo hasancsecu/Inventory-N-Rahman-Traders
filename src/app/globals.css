@@ -43,3 +43,21 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Mobile Safe Area & Touch Enhancements */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure minimum touch target on mobile */
+@media (max-width: 768px) {
+  input, select, textarea, button {
+    font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+  }
+}
+

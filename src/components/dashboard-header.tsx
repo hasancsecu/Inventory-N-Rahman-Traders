@@ -26,6 +26,7 @@ import { LanguageToggle } from "./language-toggle";
 import { AgencySummary } from "@/actions/agency";
 import { AuthUser, userHasPermission } from "@/lib/auth-types";
 import { logoutUser } from "@/actions/auth";
+import { MobileNav } from "./mobile-nav";
 import {
   getNavigationForUser,
   canUserSwitchRole,
@@ -176,7 +177,8 @@ export function DashboardHeader({
     : "";
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/80 dark:border-zinc-800/80 shadow-xs transition-colors">
+    <>
+      <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/80 dark:border-zinc-800/80 shadow-xs transition-colors">
       {/* Main Header Bar */}
       <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-4">
         {/* Left: Brand Identity + Dealership Switcher */}
@@ -766,5 +768,11 @@ export function DashboardHeader({
         </>
       )}
     </header>
+    <MobileNav
+      activeUser={activeUser}
+      onOpenMobileMenu={() => setMobileMenuOpen(true)}
+    />
+  </>
   );
 }
+

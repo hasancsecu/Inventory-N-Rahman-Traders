@@ -316,7 +316,8 @@ export function UsersClient({
           </div>
 
           <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs min-w-[680px]">
                 <thead className="bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 uppercase tracking-wider font-semibold border-b border-zinc-200 dark:border-zinc-800">
                   <tr>
@@ -402,6 +403,92 @@ export function UsersClient({
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile View: Users Cards */}
+            <div className="sm:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+              {paginatedUsers.items.map((u) => (
+                <div key={u.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                        {u.name}
+                      </div>
+                      <div className="text-zinc-500 font-mono text-xs mt-0.5">
+                        {u.email}
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                        u.isActive
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+                          : 'bg-zinc-100 text-zinc-500'
+                      }`}
+                    >
+                      {u.isActive ? t.users.activeStatus : t.users.inactiveStatus}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${getRoleBadge(
+                        u.role
+                      )}`}
+                    >
+                      {u.role === 'SUPER_ADMIN' && <Crown className="h-3 w-3" />}
+                      {u.role}
+                    </span>
+                    <span className="text-xs text-zinc-500">
+                      • {u.roleTitle || u.role}
+                    </span>
+                  </div>
+
+                  <div className="pt-1">
+                    <div className="text-[10px] text-zinc-400 font-medium mb-1">
+                      {language === 'bn' ? 'অনুমোদিত ডিলারশিপ:' : 'Authorized Dealerships:'}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {u.allowedAgencyIds?.includes('*') ? (
+                        <span className="px-2 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 font-mono text-[10px] font-bold">
+                          {language === 'bn' ? 'সকল অনুমোদিত ডিলারশিপ' : 'All Authorized Dealerships'}
+                        </span>
+                      ) : (
+                        (u.allowedAgencyIds || []).map((agencyId: string) => {
+                          const agency = agencies.find((a) => a.id === agencyId)
+                          return (
+                            <span
+                              key={agencyId}
+                              className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-mono text-[10px] font-semibold"
+                            >
+                              {agency?.code || agencyId}
+                            </span>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleActive(u.id, u.isActive)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all min-h-[38px] flex items-center justify-center cursor-pointer touch-manipulation active:scale-95 ${
+                        u.isActive
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600'
+                          : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
+                      }`}
+                    >
+                      {u.isActive
+                        ? language === 'bn'
+                          ? 'নিষ্ক্রিয় করুন'
+                          : 'Deactivate Account'
+                        : language === 'bn'
+                        ? 'সক্রিয় করুন'
+                        : 'Reactivate Account'}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Backend Pagination Bar */}

@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'লুব্রিফ্লো ইআরপি • LUBRIFLOW ERP • Multi-Dealership Lubricant Distributor System',
+  title: 'LUBRIFLOW ERP • Multi-Dealership Lubricant Distributor System',
   description:
     'Production-grade multi-entity Inventory, Due Khata & Principal Lifting Management ERP for authorized Lubricants dealerships in Bangladesh.',
 }
@@ -57,7 +57,7 @@ export default async function RootLayout({
               agencies={agencies}
               activeUser={currentUser}
             />
-            <main className="flex-1 flex flex-col">{children}</main>
+            <main className="flex-1 flex flex-col pb-20 md:pb-6">{children}</main>
             <Toaster />
           </LanguageProvider>
         </ThemeProvider>

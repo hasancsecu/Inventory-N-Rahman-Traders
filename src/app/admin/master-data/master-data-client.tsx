@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import Link from 'next/link'
 import {
   Crown,
   Building2,
@@ -823,7 +824,29 @@ export function MasterDataClient({
 
       {/* Tabs & Search Filter Navigation Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Entity Tabs */}
+        {/* Mobile Entity Section Quick Dropdown */}
+        <div className="md:hidden w-full flex items-center gap-2">
+          <span className="text-xs font-bold text-zinc-500 shrink-0">
+            {language === 'bn' ? 'বিভাগ:' : 'Section:'}
+          </span>
+          <select
+            value={activeTab}
+            onChange={(e) => {
+              setActiveTab(e.target.value as TabType)
+              setSearchTerm('')
+            }}
+            className="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 dark:border-amber-700/80 bg-amber-50/50 dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="agencies">🏢 {t.masterData.tabAgencies} ({agencies.length})</option>
+            <option value="products">📦 {t.masterData.tabProducts} ({products.length})</option>
+            <option value="batches">📑 {t.masterData.tabBatches} ({batches.length})</option>
+            <option value="customers">👥 {t.masterData.tabCustomers} ({customers.length})</option>
+            <option value="invoices">🧾 {t.masterData.tabInvoices} ({invoices.length})</option>
+            <option value="suppliers">🚛 {t.masterData.tabSuppliers} ({suppliers.length})</option>
+          </select>
+        </div>
+
+        {/* Entity Tabs (Desktop and swipeable chips on mobile) */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-zinc-200/80 dark:bg-zinc-800/70 border border-zinc-300 dark:border-zinc-700/60 overflow-x-auto no-scrollbar max-w-full">
           {[
             { id: 'agencies', label: t.masterData.tabAgencies, icon: Building2, count: agencies.length },
@@ -910,7 +933,8 @@ export function MasterDataClient({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[720px]">
               <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 uppercase tracking-wider text-[10px] font-bold border-b border-zinc-200 dark:border-zinc-800">
                 <tr>
@@ -985,6 +1009,85 @@ export function MasterDataClient({
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Responsive Cards */}
+          <div className="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+            {paginatedAgencies.items.length === 0 ? (
+              <div className="p-8 text-center text-zinc-400 text-xs">No dealership agencies found.</div>
+            ) : (
+              paginatedAgencies.items.map((agency) => (
+                <div key={agency.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-3.5 h-3.5 rounded-full shrink-0 shadow-xs"
+                        style={{ backgroundColor: agency.brandColor || '#dc2626' }}
+                      />
+                      <div>
+                        <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                          {agency.name}
+                        </div>
+                        <div className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+                          {agency.code} • {agency.brandPrincipal}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold">
+                      BIN: {agency.binNo}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800/70">
+                    <div>
+                      <span className="text-zinc-400 block text-[10px] font-medium">{language === 'bn' ? 'ট্রেড লাইসেন্স' : 'Trade License'}</span>
+                      <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200 truncate block">{agency.tradeLicense}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 block text-[10px] font-medium">{language === 'bn' ? 'ফোন' : 'Phone'}</span>
+                      <a href={`tel:${agency.phone}`} className="font-mono font-bold text-emerald-600 dark:text-emerald-400 block truncate">
+                        {agency.phone}
+                      </a>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-zinc-400 block text-[10px] font-medium">{language === 'bn' ? 'ব্যাংক হিসাব' : 'Bank Account'}</span>
+                      <span className="font-mono text-zinc-700 dark:text-zinc-300 text-xs block">{agency.bankName || 'Islami Bank'} - {agency.bankAccountNo}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-zinc-400 block text-[10px] font-medium">{language === 'bn' ? 'ঠিকানা' : 'Address'}</span>
+                      <span className="text-zinc-600 dark:text-zinc-300 text-xs truncate block">{agency.address}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => {
+                        setEditingItem(agency)
+                        setActiveModal('agencies')
+                      }}
+                      className="flex-1 py-2.5 px-3 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                    >
+                      <Edit2 className="h-4 w-4 text-zinc-500" />
+                      <span>{t.common.edit}</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setDeleteConfirmation({
+                          type: 'agencies',
+                          id: agency.id,
+                          title: agency.name,
+                        })
+                      }
+                      className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>{t.common.delete}</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
 
           <Pagination
             currentPage={paginatedAgencies.page}
@@ -1131,57 +1234,125 @@ export function MasterDataClient({
           {/* VIEW 1: PRODUCT SKUs TABLE */}
           {productSubTab === 'catalog' && (
             <>
-              <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs min-w-[720px]">
-                <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 uppercase tracking-wider text-[10px] font-bold border-b border-zinc-200 dark:border-zinc-800">
-                  <tr>
-                    <th className="py-3 px-4">Product Name / Brand</th>
-                    <th className="py-3 px-4">SKU / Agency</th>
-                    <th className="py-3 px-4">Viscosity Grade</th>
-                    <th className="py-3 px-4">Packaging & UOM</th>
-                    <th className="py-3 px-4">Liters / Unit</th>
-                    <th className="py-3 px-4">Packaging Type</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                  {paginatedProducts.items.map((p) => (
-                    <tr key={p.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40">
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-zinc-900 dark:text-zinc-100">{p.name}</div>
-                        <div className="text-[11px] text-zinc-500">{p.brand} • {p.applicationSegment}</div>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-[11px]">
-                        <span className="font-bold text-zinc-800 dark:text-zinc-200">{p.sku}</span>
-                        <div className="text-[10px] text-zinc-500">{p.agency?.code || p.agencyId}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 font-mono text-[10px] font-semibold text-zinc-700 dark:text-zinc-300">
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-xs min-w-[720px]">
+                  <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 uppercase tracking-wider text-[10px] font-bold border-b border-zinc-200 dark:border-zinc-800">
+                    <tr>
+                      <th className="py-3 px-4">Product Name / Brand</th>
+                      <th className="py-3 px-4">SKU / Agency</th>
+                      <th className="py-3 px-4">Viscosity Grade</th>
+                      <th className="py-3 px-4">Packaging & UOM</th>
+                      <th className="py-3 px-4">Liters / Unit</th>
+                      <th className="py-3 px-4">Packaging Type</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                    {paginatedProducts.items.map((p) => (
+                      <tr key={p.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40">
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-zinc-900 dark:text-zinc-100">{p.name}</div>
+                          <div className="text-[11px] text-zinc-500">{p.brand} • {p.applicationSegment}</div>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-[11px]">
+                          <span className="font-bold text-zinc-800 dark:text-zinc-200">{p.sku}</span>
+                          <div className="text-[10px] text-zinc-500">{p.agency?.code || p.agencyId}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 font-mono text-[10px] font-semibold text-zinc-700 dark:text-zinc-300">
+                            {p.viscosityGrade}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-[11px]">
+                          <div>{p.packaging?.replace('_', ' ')}</div>
+                          <div className="text-zinc-500 font-mono">{p.uom}</div>
+                        </td>
+                        <td className="py-3.5 px-4 font-bold font-mono text-zinc-900 dark:text-zinc-100">
+                          {p.litersPerUnit} L
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold">
+                            {p.packaging?.replace('_', ' ') || 'STANDARD'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right space-x-1">
+                          <button
+                            onClick={() => {
+                              setEditingItem(p)
+                              setActiveModal('products')
+                            }}
+                            className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-pointer"
+                            title="Edit Product"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              setDeleteConfirmation({
+                                type: 'products',
+                                id: p.id,
+                                title: `${p.name} (${p.sku})`,
+                              })
+                            }
+                            className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 cursor-pointer"
+                            title="Delete Product"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Responsive Cards for Product SKUs */}
+              <div className="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+                {paginatedProducts.items.length === 0 ? (
+                  <div className="p-8 text-center text-zinc-400 text-xs">No product SKUs found.</div>
+                ) : (
+                  paginatedProducts.items.map((p) => (
+                    <div key={p.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                            {p.name}
+                          </div>
+                          <div className="text-xs text-zinc-500 font-medium mt-0.5">
+                            {p.brand} • <span className="font-mono font-bold text-amber-600 dark:text-amber-400">{p.sku}</span>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-400/40 font-mono text-[11px] font-bold shrink-0">
                           {p.viscosityGrade}
                         </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-[11px]">
-                        <div>{p.packaging?.replace('_', ' ')}</div>
-                        <div className="text-zinc-500 font-mono">{p.uom}</div>
-                      </td>
-                      <td className="py-3.5 px-4 font-bold font-mono text-zinc-900 dark:text-zinc-100">
-                        {p.litersPerUnit} L
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold">
-                          {p.packaging?.replace('_', ' ') || 'STANDARD'}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right space-x-1">
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-xs p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800/70">
+                        <div>
+                          <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'প্যাকেজিং' : 'Pack Size'}</span>
+                          <span className="font-bold text-zinc-800 dark:text-zinc-200 truncate block">{p.packaging?.replace('_', ' ')}</span>
+                        </div>
+                        <div>
+                          <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'প্রতি ইউনিটে' : 'Capacity'}</span>
+                          <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100 block">{p.litersPerUnit} L</span>
+                        </div>
+                        <div>
+                          <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'ডিলারশিপ' : 'Agency'}</span>
+                          <span className="font-mono text-zinc-700 dark:text-zinc-300 block truncate">{p.agency?.code || 'ALL'}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
                         <button
                           onClick={() => {
                             setEditingItem(p)
                             setActiveModal('products')
                           }}
-                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-pointer"
-                          title="Edit Product"
+                          className="flex-1 py-2.5 px-3 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
                         >
-                          <Edit2 className="h-3.5 w-3.5" />
+                          <Edit2 className="h-4 w-4 text-zinc-500" />
+                          <span>{t.common.edit}</span>
                         </button>
                         <button
                           onClick={() =>
@@ -1191,17 +1362,16 @@ export function MasterDataClient({
                               title: `${p.name} (${p.sku})`,
                             })
                           }
-                          className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 cursor-pointer"
-                          title="Delete Product"
+                          className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" />
+                          <span>{t.common.delete}</span>
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
 
             <Pagination
               currentPage={paginatedProducts.page}
@@ -1514,7 +1684,8 @@ export function MasterDataClient({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[780px]">
               <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 uppercase tracking-wider text-[10px] font-bold border-b border-zinc-200 dark:border-zinc-800">
                 <tr>
@@ -1601,6 +1772,88 @@ export function MasterDataClient({
             </table>
           </div>
 
+          {/* Mobile Responsive Cards for Batches */}
+          <div className="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+            {paginatedBatches.items.length === 0 ? (
+              <div className="p-8 text-center text-zinc-400 text-xs">No inventory batches found.</div>
+            ) : (
+              paginatedBatches.items.map((b) => {
+                const supplierName =
+                  suppliers.find((s) => s.id === b.supplierId)?.name || 'Direct / Principal'
+                const isLowStock = b.stockQuantity <= (b.minAlertStock || 5)
+
+                return (
+                  <div key={b.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                          {b.product?.name || 'Product'}
+                        </div>
+                        <div className="text-xs font-mono font-bold text-zinc-500 mt-0.5">
+                          Lot: <span className="text-zinc-800 dark:text-zinc-200">{b.batchNumber}</span> • {b.agency?.code || 'ALL'}
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold shrink-0 ${
+                          isLowStock
+                            ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-900'
+                            : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                        }`}
+                      >
+                        {b.stockQuantity} {b.product?.uom === 'LITERS' ? 'Ltr' : 'Pcs'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-xs p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800/70">
+                      <div>
+                        <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'ক্রয় মূল্য (FIFO)' : 'Buy Rate'}</span>
+                        <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300 block">৳{Number(b.purchaseRate).toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'বিক্রয় মূল্য (TP)' : 'Trade Price'}</span>
+                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 block">৳{Number(b.tradePrice).toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'খুচরা (MRP)' : 'MRP'}</span>
+                        <span className="font-mono text-zinc-500 block">৳{Number(b.mrp).toLocaleString()}</span>
+                      </div>
+                      <div className="col-span-3 text-[11px] text-zinc-500 pt-1 border-t border-zinc-200/50 dark:border-zinc-700/50 flex justify-between">
+                        <span>{supplierName}</span>
+                        <span>{b.receivedDate ? `Received ${b.receivedDate}` : ''}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={() => {
+                          setEditingItem(b)
+                          setActiveModal('batches')
+                        }}
+                        className="flex-1 py-2.5 px-3 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                      >
+                        <Edit2 className="h-4 w-4 text-zinc-500" />
+                        <span>{t.common.edit}</span>
+                      </button>
+                      <button
+                        onClick={() =>
+                          setDeleteConfirmation({
+                            type: 'batches',
+                            id: b.id,
+                            title: `Batch ${b.batchNumber}`,
+                          })
+                        }
+                        className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>{t.common.delete}</span>
+                      </button>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
           <Pagination
             currentPage={paginatedBatches.page}
             totalPages={paginatedBatches.totalPages}
@@ -1635,7 +1888,8 @@ export function MasterDataClient({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[720px]">
               <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 uppercase tracking-wider text-[10px] font-bold border-b border-zinc-200 dark:border-zinc-800">
                 <tr>
@@ -1703,6 +1957,78 @@ export function MasterDataClient({
             </table>
           </div>
 
+          {/* Mobile Responsive Cards for Customers */}
+          <div className="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+            {paginatedCustomers.items.length === 0 ? (
+              <div className="p-8 text-center text-zinc-400 text-xs">No customer accounts found.</div>
+            ) : (
+              paginatedCustomers.items.map((cust) => (
+                <div key={cust.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                        {cust.name}
+                      </div>
+                      <div className="text-xs text-zinc-500 font-medium mt-0.5">
+                        {cust.proprietor ? `${cust.proprietor} • ` : ''}
+                        <a href={`tel:${cust.phone}`} className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          {cust.phone}
+                        </a>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-mono text-[10px] font-bold">
+                      {cust.vehicleTypeFocus?.replace('_', ' ')}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800/70">
+                    <div>
+                      <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'বর্তমান বকেয়া' : 'Current Due'}</span>
+                      <span className="font-mono font-black text-red-600 dark:text-red-400 text-sm block">
+                        ৳{Number(cust.currentDue).toLocaleString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'ক্রেডিট সীমা' : 'Credit Limit'}</span>
+                      <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200 block">
+                        ৳{Number(cust.totalCreditLimit).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="col-span-2 text-[11px] text-zinc-500 truncate pt-1 border-t border-zinc-200/50 dark:border-zinc-700/50">
+                      {cust.address}, {cust.district}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => {
+                        setEditingItem(cust)
+                        setActiveModal('customers')
+                      }}
+                      className="flex-1 py-2.5 px-3 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                    >
+                      <Edit2 className="h-4 w-4 text-zinc-500" />
+                      <span>{t.common.edit}</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setDeleteConfirmation({
+                          type: 'customers',
+                          id: cust.id,
+                          title: cust.name,
+                        })
+                      }
+                      className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>{t.common.delete}</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
           <Pagination
             currentPage={paginatedCustomers.page}
             totalPages={paginatedCustomers.totalPages}
@@ -1732,7 +2058,8 @@ export function MasterDataClient({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[720px]">
               <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 uppercase tracking-wider text-[10px] font-bold border-b border-zinc-200 dark:border-zinc-800">
                 <tr>
@@ -1806,6 +2133,89 @@ export function MasterDataClient({
             </table>
           </div>
 
+          {/* Mobile Responsive Cards for Invoices */}
+          <div className="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+            {paginatedInvoices.items.length === 0 ? (
+              <div className="p-8 text-center text-zinc-400 text-xs">No commercial invoices found.</div>
+            ) : (
+              paginatedInvoices.items.map((inv) => (
+                <div key={inv.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-mono font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                        {inv.invoiceNo}
+                      </div>
+                      <div className="text-xs text-zinc-500 mt-0.5">
+                        Chalan: <span className="font-mono">{inv.chalanNo}</span> • <span className="font-semibold text-zinc-700 dark:text-zinc-300">{inv.agency?.code || 'ALL'}</span>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
+                        Number(inv.dueAmount || 0) <= 0 || inv.status === 'PAID'
+                          ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                          : inv.status === 'VOID'
+                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                            : Number(inv.paidAmount || 0) > 0
+                              ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800'
+                              : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                      }`}
+                    >
+                      {Number(inv.dueAmount || 0) <= 0 || inv.status === 'PAID' ? 'PAID' : Number(inv.paidAmount || 0) > 0 ? 'PARTIAL' : inv.status}
+                    </span>
+                  </div>
+
+                  <div className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                    {inv.customer?.name || inv.customerId}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-xs p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800/70">
+                    <div>
+                      <span className="text-zinc-400 block text-[10px]">{t.common.total}</span>
+                      <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100 block">
+                        ৳{Number(inv.totalAmount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 block text-[10px]">{t.common.paid}</span>
+                      <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400 block">
+                        ৳{Number(inv.paidAmount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 block text-[10px]">{t.common.due}</span>
+                      <span className="font-mono font-bold text-red-600 dark:text-red-400 block">
+                        ৳{Number(inv.dueAmount).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <Link
+                      href={`/invoices/${inv.id}`}
+                      className="flex-1 py-2.5 px-3 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation text-center"
+                    >
+                      <FileText className="h-4 w-4 text-zinc-500" />
+                      <span>{t.common.details}</span>
+                    </Link>
+                    <button
+                      onClick={() =>
+                        setDeleteConfirmation({
+                          type: 'invoices',
+                          id: inv.id,
+                          title: `Invoice ${inv.invoiceNo} (Due: ৳${inv.dueAmount.toLocaleString()})`,
+                        })
+                      }
+                      className="py-2.5 px-3.5 rounded-xl border border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      <span>Void</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
           <Pagination
             currentPage={paginatedInvoices.page}
             totalPages={paginatedInvoices.totalPages}
@@ -1840,7 +2250,8 @@ export function MasterDataClient({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[720px]">
               <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 uppercase tracking-wider text-[10px] font-bold border-b border-zinc-200 dark:border-zinc-800">
                 <tr>
@@ -1915,6 +2326,94 @@ export function MasterDataClient({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Responsive Cards for Suppliers */}
+          <div className="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+            {paginatedSuppliers.items.length === 0 ? (
+              <div className="p-8 text-center text-zinc-400 text-xs">No principal suppliers configured.</div>
+            ) : (
+              paginatedSuppliers.items.map((s) => (
+                <div key={s.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                        {s.name}
+                      </div>
+                      <div className="text-xs text-zinc-500 font-mono mt-0.5">
+                        Code: <span className="font-bold text-amber-600 dark:text-amber-400">{s.code}</span> • {s.agency?.code || 'ALL'}
+                      </div>
+                    </div>
+                    <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                      Balance: ৳{Number(s.currentBalance).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800/70">
+                    <div>
+                      <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'দায়িত্বপ্রাপ্ত কর্মকর্তা' : 'Contact Person'}</span>
+                      <span className="font-medium text-zinc-800 dark:text-zinc-200 block truncate">{s.contactPerson || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 block text-[10px]">{language === 'bn' ? 'ফোন নম্বর' : 'Phone'}</span>
+                      <a href={`tel:${s.phone}`} className="font-mono font-bold text-emerald-600 dark:text-emerald-400 block truncate">
+                        {s.phone}
+                      </a>
+                    </div>
+                    {s.email && (
+                      <div className="col-span-2">
+                        <span className="text-zinc-400 block text-[10px]">Email</span>
+                        <a href={`mailto:${s.email}`} className="font-mono text-zinc-600 dark:text-zinc-300 block truncate">
+                          {s.email}
+                        </a>
+                      </div>
+                    )}
+                    {s.address && (
+                      <div className="col-span-2 text-[11px] text-zinc-500 truncate pt-1 border-t border-zinc-200/50 dark:border-zinc-700/50">
+                        {s.address}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => {
+                        setEditingItem({ supplierId: s.id, agencyId: s.agencyId })
+                        setActiveModal('batches')
+                      }}
+                      className="py-2.5 px-3 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                      title="Record Inward Lot"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      <span>{language === 'bn' ? 'মাল ইনওয়ার্ড' : 'Inward'}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingItem(s)
+                        setActiveModal('suppliers')
+                      }}
+                      className="flex-1 py-2.5 px-3 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                    >
+                      <Edit2 className="h-4 w-4 text-zinc-500" />
+                      <span>{t.common.edit}</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setDeleteConfirmation({
+                          type: 'suppliers',
+                          id: s.id,
+                          title: s.name,
+                        })
+                      }
+                      className="py-2.5 px-3.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>{t.common.delete}</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           <Pagination

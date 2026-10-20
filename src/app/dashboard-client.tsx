@@ -151,14 +151,14 @@ export function DashboardClient({
           </div>
 
           {/* Dynamic Actions based on Role */}
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3 shrink-0 w-full md:w-auto">
             {isSuperAdmin && (
               <Link
                 href="/admin/master-data"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-3 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer touch-manipulation active:scale-95"
               >
-                <Crown className="h-4 w-4" />
-                <span>{t.nav.masterData}</span>
+                <Crown className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t.nav.masterData}</span>
               </Link>
             )}
 
@@ -166,10 +166,10 @@ export function DashboardClient({
             {(isSuperAdmin || isManager || isCashier) && (
               <Link
                 href="/pos"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-sm shadow-sm shadow-red-600/30 transition-all hover:scale-102 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-3 sm:py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-red-600/30 transition-all hover:scale-102 cursor-pointer touch-manipulation active:scale-95"
               >
-                <ShoppingCart className="h-4 w-4" />
-                {t.dashboard.newInvoiceBtn}
+                <ShoppingCart className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t.dashboard.newInvoiceBtn}</span>
               </Link>
             )}
 
@@ -177,10 +177,10 @@ export function DashboardClient({
             {(isSuperAdmin || isManager || isStorekeeper) && (
               <Link
                 href="/inventory"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-semibold text-sm text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 shadow-xs transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-3 sm:py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-bold text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 shadow-xs transition-all cursor-pointer touch-manipulation active:scale-95"
               >
-                <Boxes className="h-4 w-4 text-zinc-500" />
-                {t.dashboard.inventoryBtn}
+                <Boxes className="h-4 w-4 text-zinc-500 shrink-0" />
+                <span className="truncate">{t.dashboard.inventoryBtn}</span>
               </Link>
             )}
 
@@ -188,10 +188,10 @@ export function DashboardClient({
             {(isSuperAdmin || isManager || isCashier) && (
               <Link
                 href="/khata"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-semibold text-sm text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 shadow-xs transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-3 sm:py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 font-bold text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 shadow-xs transition-all cursor-pointer touch-manipulation active:scale-95"
               >
-                <BookOpenCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                {t.dashboard.khataBtn}
+                <BookOpenCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span className="truncate">{t.dashboard.khataBtn}</span>
               </Link>
             )}
           </div>
@@ -324,7 +324,8 @@ export function DashboardClient({
           </div>
 
           <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs min-w-[620px]">
                 <thead className="bg-zinc-50/80 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 uppercase tracking-wider font-semibold">
                   <tr>
@@ -401,6 +402,87 @@ export function DashboardClient({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="sm:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+              {recentInvoices.length === 0 ? (
+                <div className="p-8 text-center text-xs text-zinc-400">
+                  {t.dashboard.noInvoicesYet}. {t.dashboard.noInvoicesDesc}
+                </div>
+              ) : (
+                recentInvoices.map((inv) => (
+                  <div key={inv.id} className="p-4 space-y-2.5 bg-white dark:bg-zinc-900">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-mono font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                          {inv.invoiceNo}
+                        </div>
+                        <div className="text-[11px] font-mono text-zinc-400 mt-0.5">
+                          {inv.chalanNo}
+                        </div>
+                      </div>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                          inv.status === 'PAID'
+                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800'
+                            : inv.status === 'VOID'
+                            ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-800'
+                            : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800'
+                        }`}
+                      >
+                        {inv.status === 'PAID'
+                          ? (language === 'bn' ? 'পরিশোধিত' : 'PAID')
+                          : inv.status === 'PARTIAL'
+                          ? (language === 'bn' ? 'আংশিক বাকি' : 'PARTIAL')
+                          : (inv.status || 'DUE')}
+                      </span>
+                    </div>
+
+                    <div className="text-xs">
+                      <div className="font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                        {inv.customerName}
+                      </div>
+                      <div className="text-[11px] text-zinc-500 flex items-center gap-1 mt-0.5">
+                        <Truck className="h-3 w-3 text-zinc-400" />
+                        <span>{inv.vehicleNumber || (language === 'bn' ? 'কাউন্টার ডেলিভারি' : 'Counter Delivery')}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 font-mono text-xs">
+                      <div>
+                        <div className="text-[10px] text-zinc-400">{language === 'bn' ? 'ভলিউম' : 'Volume'}</div>
+                        <div className="font-semibold text-zinc-800 dark:text-zinc-200">
+                          {formatNumber(inv.totalLiters)} L
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-zinc-400">{language === 'bn' ? 'মোট বিল' : 'Total'}</div>
+                        <div className="font-bold text-zinc-900 dark:text-zinc-100">
+                          {formatCurrency(inv.totalAmount)}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-zinc-400">{language === 'bn' ? 'বাকি' : 'Due'}</div>
+                        <div className="font-bold text-red-600 dark:text-red-400">
+                          {formatCurrency(inv.dueAmount)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-1 flex justify-end">
+                      <Link
+                        href={`/invoices/${inv.id}/print`}
+                        target="_blank"
+                        className="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[11px] font-bold text-red-600 dark:text-red-400 flex items-center gap-1.5 cursor-pointer touch-manipulation"
+                      >
+                        <span>{language === 'bn' ? 'প্রিন্ট রশিদ' : 'Print Receipt'}</span>
+                        <ArrowUpRight className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

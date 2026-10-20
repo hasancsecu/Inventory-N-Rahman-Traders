@@ -39,7 +39,9 @@ export function LoginClient({
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [isPending, startTransition] = React.useTransition();
-  const [selectedQuickUser, setSelectedQuickUser] = React.useState<string | null>(null);
+  const [selectedQuickUser, setSelectedQuickUser] = React.useState<
+    string | null
+  >(null);
   const [error, setError] = React.useState<string | null>(null);
 
   const handleCredentialsLogin = (e: React.FormEvent) => {
@@ -50,7 +52,11 @@ export function LoginClient({
       const res = await loginUser({ email, password });
       if (!res.success) {
         setError(
-          "error" in res && res.error ? res.error : (language === "bn" ? "লগইন ব্যর্থ হয়েছে। দয়া করে সঠিক তথ্য দিন।" : "Failed to authenticate."),
+          "error" in res && res.error
+            ? res.error
+            : language === "bn"
+              ? "লগইন ব্যর্থ হয়েছে। দয়া করে সঠিক তথ্য দিন।"
+              : "Failed to authenticate.",
         );
       } else {
         window.location.href = "/";
@@ -67,7 +73,10 @@ export function LoginClient({
         await quickLoginAs(userId);
         window.location.href = "/";
       } catch (err: any) {
-        setError(err?.message || (language === "bn" ? "লগইন ব্যর্থ হয়েছে" : "Login failed"));
+        setError(
+          err?.message ||
+            (language === "bn" ? "লগইন ব্যর্থ হয়েছে" : "Login failed"),
+        );
       }
     });
   };
@@ -109,7 +118,9 @@ export function LoginClient({
                   </span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {language === "bn" ? "অনুমোদিত লুব্রিকেন্ট পরিবেশক পোর্টাল" : "Multi-Dealership Access Portal"}
+                  {language === "bn"
+                    ? "অনুমোদিত লুব্রিকেন্ট পরিবেশক পোর্টাল"
+                    : "Multi-Dealership Access Portal"}
                 </p>
               </div>
             </div>
@@ -131,9 +142,16 @@ export function LoginClient({
             </div>
           )}
 
-          <form onSubmit={handleCredentialsLogin} className="space-y-4" autoComplete="on">
+          <form
+            onSubmit={handleCredentialsLogin}
+            className="space-y-4"
+            autoComplete="on"
+          >
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="email"
+                className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+              >
                 {t.login.email}
               </label>
               <div className="relative">
@@ -153,7 +171,10 @@ export function LoginClient({
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="password"
+                className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+              >
                 {t.login.password}
               </label>
               <div className="relative">
@@ -188,13 +209,6 @@ export function LoginClient({
             </button>
           </form>
         </div>
-
-        <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 text-[11px] text-zinc-500 flex items-center justify-between">
-          <span>{language === "bn" ? "ব্রাউজার পাসওয়ার্ড সেভার সমর্থিত" : "Google Password Manager supported"}</span>
-          <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" /> Auto-Save
-          </span>
-        </div>
       </div>
 
       {/* RIGHT: Security Panel or Persona Switcher (If Super Admin) (6 cols) */}
@@ -205,7 +219,9 @@ export function LoginClient({
               <div className="flex items-center gap-2">
                 <Crown className="h-4 w-4 text-amber-500" />
                 <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
-                  {language === "bn" ? "সুপার অ্যাডমিন ভূমিকা পরিবর্তন" : "Super Admin Persona Switcher"}
+                  {language === "bn"
+                    ? "সুপার অ্যাডমিন ভূমিকা পরিবর্তন"
+                    : "Super Admin Persona Switcher"}
                 </h2>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800">
@@ -222,7 +238,8 @@ export function LoginClient({
               {staffUsers.map((user) => {
                 const isSelected = selectedQuickUser === user.id;
                 const isCurrent = currentUser?.id === user.id;
-                const roleBadge = t.roles[user.role as keyof typeof t.roles] || user.role;
+                const roleBadge =
+                  t.roles[user.role as keyof typeof t.roles] || user.role;
 
                 return (
                   <div
@@ -246,7 +263,9 @@ export function LoginClient({
                             <span>{user.name}</span>
                             {isCurrent && (
                               <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-mono">
-                                {language === "bn" ? "বর্তমান সেশন" : "Active Session"}
+                                {language === "bn"
+                                  ? "বর্তমান সেশন"
+                                  : "Active Session"}
                               </span>
                             )}
                           </div>
@@ -266,12 +285,16 @@ export function LoginClient({
                         {language === "bn" ? "এজেন্সি ক্ষেত্র:" : "Scope:"}{" "}
                         <strong className="text-zinc-700 dark:text-zinc-300">
                           {user.allowedAgencyIds.includes("*")
-                            ? (language === "bn" ? "সকল এজেন্সি" : "Cross-Agency")
+                            ? language === "bn"
+                              ? "সকল এজেন্সি"
+                              : "Cross-Agency"
                             : user.allowedAgencyIds.join(", ")}
                         </strong>
                       </span>
                       <span className="text-red-600 dark:text-red-400 font-semibold group-hover:underline">
-                        {language === "bn" ? "স্যুইচ করুন →" : "Switch Persona →"}
+                        {language === "bn"
+                          ? "স্যুইচ করুন →"
+                          : "Switch Persona →"}
                       </span>
                     </div>
                   </div>
@@ -287,10 +310,14 @@ export function LoginClient({
               </div>
               <div>
                 <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                  {language === "bn" ? "অনুমোদিত এন্টারপ্রাইজ অ্যাক্সেস" : "Authorized Enterprise Access"}
+                  {language === "bn"
+                    ? "অনুমোদিত এন্টারপ্রাইজ অ্যাক্সেস"
+                    : "Authorized Enterprise Access"}
                 </h2>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {language === "bn" ? "ভূমিকা-ভিত্তিক নিরাপত্তা ও অডিট ট্রেইল" : "Role-Based Security & Audit Trail"}
+                  {language === "bn"
+                    ? "ভূমিকা-ভিত্তিক নিরাপত্তা ও অডিট ট্রেইল"
+                    : "Role-Based Security & Audit Trail"}
                 </p>
               </div>
             </div>
@@ -299,7 +326,11 @@ export function LoginClient({
               <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1">
                 <div className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                   <Crown className="h-4 w-4 text-amber-500" />
-                  <span>{language === "bn" ? "সুপার অ্যাডমিন প্রাথমিক সেটআপ" : "Super Admin Initial Setup"}</span>
+                  <span>
+                    {language === "bn"
+                      ? "সুপার অ্যাডমিন প্রাথমিক সেটআপ"
+                      : "Super Admin Initial Setup"}
+                  </span>
                 </div>
                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                   {language === "bn"
@@ -311,7 +342,11 @@ export function LoginClient({
               <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1">
                 <div className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-blue-500" />
-                  <span>{language === "bn" ? "ডিলারশিপ ডেটা আইসোলেশন" : "Dealership Data Isolation"}</span>
+                  <span>
+                    {language === "bn"
+                      ? "ডিলারশিপ ডেটা আইসোলেশন"
+                      : "Dealership Data Isolation"}
+                  </span>
                 </div>
                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                   {language === "bn"
@@ -323,7 +358,11 @@ export function LoginClient({
               <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1">
                 <div className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                   <Lock className="h-4 w-4 text-emerald-500" />
-                  <span>{language === "bn" ? "নিরাপদ ব্রাউজার অথেন্টিকেশন" : "Browser Password Management"}</span>
+                  <span>
+                    {language === "bn"
+                      ? "নিরাপদ ব্রাউজার অথেন্টিকেশন"
+                      : "Browser Password Management"}
+                  </span>
                 </div>
                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                   {language === "bn"
@@ -336,12 +375,15 @@ export function LoginClient({
             {currentUser && (
               <div className="p-4 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2 text-xs">
                 <div className="text-[11px] text-zinc-500 font-medium">
-                  {language === "bn" ? "বর্তমানে লগইন আছেন:" : "Currently Authenticated As:"}
+                  {language === "bn"
+                    ? "বর্তমানে লগইন আছেন:"
+                    : "Currently Authenticated As:"}
                 </div>
                 <div className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
                   <span>{currentUser.name}</span>
                   <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 font-mono text-[10px]">
-                    {t.roles[currentUser.role as keyof typeof t.roles] || currentUser.role}
+                    {t.roles[currentUser.role as keyof typeof t.roles] ||
+                      currentUser.role}
                   </span>
                 </div>
                 <div className="text-[11px] text-zinc-500 font-mono">
@@ -355,7 +397,9 @@ export function LoginClient({
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
           <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
           <p className="text-[11px] leading-relaxed">
-            <strong>{language === "bn" ? "নিরাপত্তা বিজ্ঞপ্তি:" : "Security Notice:"}</strong>{" "}
+            <strong>
+              {language === "bn" ? "নিরাপত্তা বিজ্ঞপ্তি:" : "Security Notice:"}
+            </strong>{" "}
             {t.login.securityNote}
           </p>
         </div>

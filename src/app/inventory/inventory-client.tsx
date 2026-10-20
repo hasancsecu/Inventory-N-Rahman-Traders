@@ -420,9 +420,9 @@ export function InventoryClient({
         </div>
       </div>
 
-      {/* Products & Batches Table */}
+      {/* Products & Batches Table (Desktop View) */}
       <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[760px]">
             <thead className="bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 uppercase tracking-wider font-semibold border-b border-zinc-200 dark:border-zinc-800">
               <tr>
@@ -606,6 +606,124 @@ export function InventoryClient({
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View: Product & Stock Cards */}
+        <div className="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+          {paginatedData.items.length === 0 ? (
+            <div className="py-12 px-4 text-center">
+              <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+                {language === 'bn' ? 'কোনো পণ্য বা মজুত পাওয়া যায়নি।' : 'No products or batches found for this dealership.'}
+              </p>
+              {canInward && (
+                <button
+                  onClick={() => setIsPurchaseModalOpen(true)}
+                  className="mt-3 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 cursor-pointer touch-manipulation active:scale-95"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>{language === 'bn' ? 'প্রথম চালান ইনওয়ার্ড করুন' : 'Inward First Purchase Lot'}</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            paginatedData.items.map((p) => {
+              const batchList = p.batches || []
+              const totalProdStock = batchList.reduce((acc: number, b: any) => acc + (b.stockQuantity || 0), 0)
+              const hasBatches = batchList.length > 0
+
+              return (
+                <div key={p.id} className="p-4 space-y-3 bg-white dark:bg-zinc-900">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
+                        {p.name}
+                      </div>
+                      <div className="text-[11px] font-mono text-zinc-400 mt-0.5">
+                        SKU: {p.sku} • {p.brand}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className={`font-mono font-bold text-sm ${totalProdStock > 0 ? 'text-zinc-900 dark:text-zinc-100' : 'text-red-500'}`}>
+                        {formatNumber(totalProdStock)} {p.uom === 'LITERS' ? (language === 'bn' ? 'লিটার' : 'Ltr') : (language === 'bn' ? 'পিস' : 'Pcs')}
+                      </div>
+                      <span className="text-[10px] text-zinc-400 font-medium">
+                        {language === 'bn' ? 'মোট মজুত' : 'Total stock'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 font-mono text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                      {p.viscosityGrade.replace(/_/g, ' ')}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
+                      {p.packaging?.replace('_', ' ') || 'STANDARD'} ({p.litersPerUnit || 1}L)
+                    </span>
+                    {canInward && (
+                      <button
+                        type="button"
+                        onClick={() => openInwardModalForProduct(p.id)}
+                        className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 font-bold text-[11px] cursor-pointer touch-manipulation active:scale-95"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span>{language === 'bn' ? '+ ইনওয়ার্ড' : '+ Inward'}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Batch Details Accordion / List */}
+                  {hasBatches ? (
+                    <div className="space-y-2 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+                      <div className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+                        {language === 'bn' ? 'সক্রিয় ব্যাচ লট সমূহ:' : 'Active Stock Batches:'}
+                      </div>
+                      <div className="space-y-1.5">
+                        {batchList.map((batch: any, bIdx: number) => {
+                          const isLow = batch.stockQuantity <= (batch.minAlertStock || 5)
+                          const isOut = batch.stockQuantity <= 0
+                          return (
+                            <div
+                              key={batch.id || bIdx}
+                              className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/60 text-xs flex items-center justify-between gap-2"
+                            >
+                              <div>
+                                <div className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                                  {batch.batchNumber}
+                                </div>
+                                <div className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                                  {language === 'bn' ? 'দর:' : 'TP:'} ৳{Number(batch.tradePrice || 0).toLocaleString()} • {language === 'bn' ? 'ক্রয়:' : 'Cost:'} ৳{Number(batch.purchaseRate || 0).toLocaleString()}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`font-mono font-bold ${isOut ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                  {batch.stockQuantity} {p.uom === 'LITERS' ? 'L' : 'Pcs'}
+                                </div>
+                                <span
+                                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
+                                    isOut
+                                      ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400'
+                                      : isLow
+                                        ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
+                                        : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
+                                  }`}
+                                >
+                                  {isOut ? (language === 'bn' ? 'স্টক শেষ' : 'Out') : isLow ? (language === 'bn' ? 'স্বল্প স্টক' : 'Low') : (language === 'bn' ? 'পর্যাপ্ত' : 'In Stock')}
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-zinc-400 italic pt-1 border-t border-zinc-100 dark:border-zinc-800">
+                      {language === 'bn' ? 'কোনো সক্রিয় ইনওয়ার্ড ব্যাচ নেই।' : 'No inward batches recorded.'}
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
 
         {/* Backend Pagination Bar */}
