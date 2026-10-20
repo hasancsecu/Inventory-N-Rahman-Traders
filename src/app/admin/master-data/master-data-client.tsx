@@ -1032,7 +1032,7 @@ export function MasterDataClient({
                 }`}
               >
                 <Award className="h-3.5 w-3.5 text-amber-500" />
-                <span>Brand Master</span>
+                <span>Brand</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
                   {filteredBrands.length}
                 </span>
