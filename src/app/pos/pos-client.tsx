@@ -1162,13 +1162,13 @@ export function PosClient({
                 <div className="flex justify-between">
                   <span className="text-zinc-500">{t.pos.invoiceNumber}</span>
                   <span className="font-bold text-red-600 dark:text-red-400 text-sm">
-                    {successReceipt.invoiceNo || "CTX-2026-0014"}
+                    {successReceipt.invoiceNo || ""}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">{t.pos.chalanNumber}</span>
                   <span className="font-bold text-zinc-800 dark:text-zinc-200">
-                    {successReceipt.chalanNo || "CTX-CH-2026-0014"}
+                    {successReceipt.chalanNo || ""}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -1206,7 +1206,7 @@ export function PosClient({
             {/* Footer Buttons */}
             <div className="p-4 sm:p-6 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 shrink-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-3">
               <Link
-                href={`/invoices/${successReceipt.id || "inv"}/print`}
+                href={`/invoices/${successReceipt.id || ""}/print`}
                 className="w-full sm:w-auto px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 font-bold text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 flex items-center justify-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer text-center"
               >
                 <Printer className="h-4 w-4" />

@@ -47,7 +47,7 @@ export async function GET(
         invoiceData.customer = {
           name: invoiceData.customerName,
           phone: '',
-          address: invoiceData.deliveryAddress || 'Customer Warehouse / Workshop',
+          address: invoiceData.deliveryAddress || '',
         }
       }
     }
@@ -62,8 +62,8 @@ export async function GET(
     // or HTML-to-binary buffer stream
     const pdfContent = `%PDF-1.4
 1 0 obj
-<< /Title (Commercial Invoice & Chalan - ${invoiceData.invoiceNo || 'CTX-2026-0012'})
-   /Author (${invoiceData.agency?.name || 'N Rahman Traders'})
+<< /Title (Commercial Invoice & Chalan - ${invoiceData.invoiceNo || ''})
+   /Author (${invoiceData.agency?.name || ''})
    /Subject (Lubricant Distribution Tax Invoice)
    /Creator (LUBRIFLOW Enterprise ERP)
 >>
@@ -83,16 +83,16 @@ stream
 BT
 /F1 18 Tf
 50 720 Td
-(${invoiceData.agency?.name || 'N Rahman Traders - Caltex Agency'}) Tj
+(${invoiceData.agency?.name || ''}) Tj
 /F1 11 Tf
 0 -24 Td
 (COMMERCIAL TAX INVOICE & DELIVERY CHALAN) Tj
 0 -18 Td
-(Invoice No: ${invoiceData.invoiceNo || 'CTX-2026-0012'} | Chalan: ${invoiceData.chalanNo || 'CTX-CH-2026-0012'}) Tj
+(Invoice No: ${invoiceData.invoiceNo || ''} | Chalan: ${invoiceData.chalanNo || ''}) Tj
 0 -18 Td
-(Customer: ${invoiceData.customer?.name || 'Hanif Enterprise'} | Vehicle: ${invoiceData.vehicleNumber || 'Dhaka Metro-Ta 11-4567'}) Tj
+(Customer: ${invoiceData.customer?.name || ''}${invoiceData.vehicleNumber ? ` | Vehicle: ${invoiceData.vehicleNumber}` : ''}) Tj
 0 -18 Td
-(Grand Total: BDT ${invoiceData.totalAmount?.toLocaleString()} | Total Liters: ${invoiceData.totalLiters || 1230} Ltr) Tj
+(Grand Total: BDT ${invoiceData.totalAmount?.toLocaleString() || 0} | Total Liters: ${invoiceData.totalLiters || 0} Ltr) Tj
 ET
 endstream
 endobj

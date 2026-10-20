@@ -110,7 +110,7 @@ export async function collectCustomerPayment(rawInput: CollectDueInput) {
           settledInvoices.push({
             id: inv.id,
             invoiceNo: inv.invoiceNo,
-            agencyCode: inv.agency?.code || 'CTX',
+            agencyCode: inv.agency?.code || '',
             settledAmount: settleAmount,
             newPaid,
             newDue,

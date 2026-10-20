@@ -110,7 +110,7 @@ export function KhataClient({
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>(
     PaymentMethod.CASH,
   );
-  const [bankName, setBankName] = React.useState("Islami Bank Bangladesh PLC");
+  const [bankName, setBankName] = React.useState("");
   const [chequeNo, setChequeNo] = React.useState("");
   const [paymentNotes, setPaymentNotes] = React.useState("");
   const [isCollecting, setIsCollecting] = React.useState(false);
@@ -161,7 +161,7 @@ export function KhataClient({
           agencyCode:
             inv.agencyCode || inv.agency?.code || currentAgency?.code || "MAIN",
           type: "INVOICE",
-          referenceNumber: inv.invoiceNo || "INV-001",
+          referenceNumber: inv.invoiceNo || "",
           debit: inv.totalAmount || 0,
           credit: 0,
           runningBalance: currentBal,

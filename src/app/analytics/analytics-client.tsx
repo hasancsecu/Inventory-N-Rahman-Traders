@@ -63,13 +63,13 @@ export function AnalyticsClient({
     initialAnalytics.agencyId || currentAgency?.id || 'ALL'
   )
   const [selectedDate, setSelectedDate] = React.useState<string>(
-    initialAnalytics.selectedDate || '2026-10-19'
+    initialAnalytics.selectedDate || new Date().toISOString().split('T')[0]
   )
   const [selectedMonth, setSelectedMonth] = React.useState<number>(
-    initialAnalytics.selectedMonth || 10
+    initialAnalytics.selectedMonth || (new Date().getMonth() + 1)
   )
   const [selectedYear, setSelectedYear] = React.useState<number>(
-    initialAnalytics.selectedYear || 2026
+    initialAnalytics.selectedYear || new Date().getFullYear()
   )
 
   // Active Deep Dive Tab
@@ -228,14 +228,14 @@ export function AnalyticsClient({
           </div>
 
           {/* Dealership Scope Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hidden sm:inline">
+          <div className="flex items-center gap-2 w-full lg:w-auto">
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hidden sm:inline shrink-0">
               {t.analytics.tenancy}
             </span>
             <select
               value={selectedAgencyId}
               onChange={(e) => handleAgencyChange(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
+              className="w-full lg:w-auto px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
             >
               <option value="ALL">{t.analytics.allAgenciesConsolidated}</option>
               {agencies.map((agency) => (
@@ -250,74 +250,76 @@ export function AnalyticsClient({
         {/* Calendar & Timeframe Navigation Bar */}
         <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           {/* Timeframe Mode Switcher */}
-          <div className="inline-flex p-1 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 self-start">
+          <div className="grid grid-cols-3 p-1 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 w-full sm:w-auto sm:inline-flex">
             <button
               onClick={() => handleTimeframeChange('DAILY')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 timeframe === 'DAILY'
                   ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
                   : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
-              <Calendar className="h-3.5 w-3.5" />
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
               <span>{t.analytics.timeframeDaily}</span>
             </button>
             <button
               onClick={() => handleTimeframeChange('MONTHLY')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 timeframe === 'MONTHLY'
                   ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
                   : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
-              <Layers className="h-3.5 w-3.5" />
+              <Layers className="h-3.5 w-3.5 shrink-0" />
               <span>{t.analytics.timeframeMonthly}</span>
             </button>
             <button
               onClick={() => handleTimeframeChange('YEARLY')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 timeframe === 'YEARLY'
                   ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
                   : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
-              <BarChart3 className="h-3.5 w-3.5" />
+              <BarChart3 className="h-3.5 w-3.5 shrink-0" />
               <span>{t.analytics.timeframeYearly}</span>
             </button>
           </div>
 
           {/* Active Calendar Control based on Timeframe Mode */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {timeframe === 'DAILY' && (
-              <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                <button
-                  onClick={() => shiftDay(-1)}
-                  title="Previous Day"
-                  className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
+              <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
+                  <button
+                    onClick={() => shiftDay(-1)}
+                    title="Previous Day"
+                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs shrink-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
 
-                <div className="relative flex items-center">
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => handleDateChange(e.target.value)}
-                    className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                  />
+                  <div className="relative flex items-center flex-1 sm:flex-none min-w-0">
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      className="w-full sm:w-auto px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none min-w-0"
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => shiftDay(1)}
+                    title="Next Day"
+                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs shrink-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
 
                 <button
-                  onClick={() => shiftDay(1)}
-                  title="Next Day"
-                  className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-
-                <button
                   onClick={resetToday}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer shrink-0"
                 >
                   {t.analytics.today}
                 </button>
@@ -325,50 +327,52 @@ export function AnalyticsClient({
             )}
 
             {timeframe === 'MONTHLY' && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button
-                  onClick={() => shiftMonth(-1)}
-                  title="Previous Month"
-                  className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
+              <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
+                  <button
+                    onClick={() => shiftMonth(-1)}
+                    title="Previous Month"
+                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs shrink-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
 
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => handleMonthChange(Number(e.target.value))}
-                  className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                >
-                  {monthNames.map((m, idx) => (
-                    <option key={m} value={idx + 1}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => handleMonthChange(Number(e.target.value))}
+                    className="flex-1 sm:flex-none px-2.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none min-w-0"
+                  >
+                    {monthNames.map((m, idx) => (
+                      <option key={m} value={idx + 1}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
 
-                <select
-                  value={selectedYear}
-                  onChange={(e) => handleYearChange(Number(e.target.value))}
-                  className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                >
-                  {AVAILABLE_YEARS.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => handleYearChange(Number(e.target.value))}
+                    className="px-2.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none shrink-0"
+                  >
+                    {AVAILABLE_YEARS.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
 
-                <button
-                  onClick={() => shiftMonth(1)}
-                  title="Next Month"
-                  className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+                  <button
+                    onClick={() => shiftMonth(1)}
+                    title="Next Month"
+                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs shrink-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
 
                 <button
                   onClick={resetCurrentMonth}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer shrink-0"
                 >
                   {t.analytics.thisMonth}
                 </button>
@@ -376,38 +380,40 @@ export function AnalyticsClient({
             )}
 
             {timeframe === 'YEARLY' && (
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => shiftYear(-1)}
-                  title="Previous Year"
-                  className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
+              <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
+                  <button
+                    onClick={() => shiftYear(-1)}
+                    title="Previous Year"
+                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs shrink-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
 
-                <select
-                  value={selectedYear}
-                  onChange={(e) => handleYearChange(Number(e.target.value))}
-                  className="px-4 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                >
-                  {AVAILABLE_YEARS.map((y) => (
-                    <option key={y} value={y}>
-                      {language === 'bn' ? `ক্যালেন্ডার বছর ${y}` : `Calendar Year ${y}`}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => handleYearChange(Number(e.target.value))}
+                    className="flex-1 sm:flex-none px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none min-w-0"
+                  >
+                    {AVAILABLE_YEARS.map((y) => (
+                      <option key={y} value={y}>
+                        {language === 'bn' ? `বছর ${y}` : `Year ${y}`}
+                      </option>
+                    ))}
+                  </select>
 
-                <button
-                  onClick={() => shiftYear(1)}
-                  title="Next Year"
-                  className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+                  <button
+                    onClick={() => shiftYear(1)}
+                    title="Next Year"
+                    className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 cursor-pointer shadow-xs shrink-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
 
                 <button
                   onClick={resetCurrentYear}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 cursor-pointer shrink-0 whitespace-nowrap"
                 >
                   {t.analytics.currentYear}
                 </button>
@@ -415,7 +421,7 @@ export function AnalyticsClient({
             )}
 
             {/* Active Period Badge */}
-            <div className="px-3 py-1.5 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold font-mono shadow-xs">
+            <div className="px-3 py-1.5 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold font-mono shadow-xs shrink-0">
               {getActivePeriodLabel()}
             </div>
           </div>

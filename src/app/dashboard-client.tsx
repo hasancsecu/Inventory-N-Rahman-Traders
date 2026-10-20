@@ -130,21 +130,21 @@ export function DashboardClient({
               <span>
                 {t.dashboard.bin}{' '}
                 <strong className="text-zinc-700 dark:text-zinc-300">
-                  {currentAgency?.binNo || '182947192-0101'}
+                  {currentAgency?.binNo}
                 </strong>
               </span>
               <span>•</span>
               <span>
                 {t.dashboard.tradeLicense}{' '}
                 <strong className="text-zinc-700 dark:text-zinc-300">
-                  {currentAgency?.tradeLicense || 'TRAD/DNCC/029102/2024'}
+                  {currentAgency?.tradeLicense}
                 </strong>
               </span>
               <span>•</span>
               <span>
                 {t.dashboard.district}{' '}
                 <strong className="text-zinc-700 dark:text-zinc-300">
-                  {currentAgency?.district || (language === 'bn' ? 'ঢাকা' : 'Dhaka')}
+                  {currentAgency?.district }
                 </strong>
               </span>
             </div>

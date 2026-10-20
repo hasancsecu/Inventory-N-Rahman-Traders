@@ -399,7 +399,7 @@ export async function createDealershipInvoice(
 
       const agency = getStoredAgencyById(rawInput.agencyId)
       const customer = getStoredCustomerById(rawInput.customerId)
-      const agencyCode = agency?.code || 'CTX'
+      const agencyCode = agency?.code || (rawInput.agencyId ? rawInput.agencyId.slice(0, 3).toUpperCase() : 'INV')
 
       const subtotal = rawInput.items.reduce((acc, item) => acc + item.quantity * item.unitRate, 0)
       const totalLiters = rawInput.items.reduce((acc, item) => acc + item.quantity * item.unitLiters, 0)
@@ -408,15 +408,16 @@ export async function createDealershipInvoice(
       const dueAmount = Math.max(0, totalAmount - effectivePaid)
 
       const seqNum = Date.now().toString().slice(-4)
-      const invoiceNo = `${agencyCode}-2026-${seqNum}`
-      const chalanNo = `${agencyCode}-CH-2026-${seqNum}`
+      const currentYear = new Date().getFullYear()
+      const invoiceNo = `${agencyCode}-${currentYear}-${seqNum}`
+      const chalanNo = `${agencyCode}-CH-${currentYear}-${seqNum}`
 
       const invoiceRecord = saveStoredInvoice({
         id: `inv-${Date.now()}`,
         agencyId: rawInput.agencyId,
         agencyCode,
         customerId: rawInput.customerId,
-        customerName: customer?.name || 'Customer',
+        customerName: customer?.name || '',
         invoiceNo,
         chalanNo,
         salesDate: new Date().toISOString(),

@@ -983,7 +983,7 @@ export function MasterDataClient({
                       {agency.tradeLicense}
                     </td>
                     <td className="py-3.5 px-4 text-[11px]">
-                      <div className="font-semibold text-zinc-800 dark:text-zinc-200">{agency.bankName || 'Islami Bank'}</div>
+                      <div className="font-semibold text-zinc-800 dark:text-zinc-200">{agency.bankName || '—'}</div>
                       <div className="font-mono text-zinc-500">{agency.bankAccountNo}</div>
                     </td>
                     <td className="py-3.5 px-4 text-[11px] text-zinc-500 max-w-xs truncate">
@@ -1060,7 +1060,7 @@ export function MasterDataClient({
                     </div>
                     <div className="col-span-2">
                       <span className="text-zinc-400 block text-[10px] font-medium">{language === 'bn' ? 'ব্যাংক হিসাব' : 'Bank Account'}</span>
-                      <span className="font-mono text-zinc-700 dark:text-zinc-300 text-xs block">{agency.bankName || 'Islami Bank'} - {agency.bankAccountNo}</span>
+                      <span className="font-mono text-zinc-700 dark:text-zinc-300 text-xs block">{agency.bankName ? `${agency.bankName} - ` : ''}{agency.bankAccountNo}</span>
                     </div>
                     <div className="col-span-2">
                       <span className="text-zinc-400 block text-[10px] font-medium">{language === 'bn' ? 'ঠিকানা' : 'Address'}</span>

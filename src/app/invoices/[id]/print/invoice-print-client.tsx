@@ -100,12 +100,14 @@ export function InvoicePrintClient({ invoice, agency }: InvoicePrintClientProps)
               </div>
               <div>
                 <span className="text-zinc-500">{t.invoicePrint.tradeLicense}</span>{' '}
-                <strong className="text-zinc-900">{agency.tradeLicense}</strong>
+                <strong className="text-zinc-900">{agency.tradeLicense || '—'}</strong>
               </div>
-              <div>
-                <span className="text-zinc-500">{t.invoicePrint.tinNo}</span>{' '}
-                <strong className="text-zinc-900">4829-1048-2910</strong>
-              </div>
+              {agency.tinNo && (
+                <div>
+                  <span className="text-zinc-500">{t.invoicePrint.tinNo}</span>{' '}
+                  <strong className="text-zinc-900">{agency.tinNo}</strong>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -126,7 +128,8 @@ export function InvoicePrintClient({ invoice, agency }: InvoicePrintClientProps)
               {t.invoicePrint.invoiceNo} {invoice.invoiceNo}
             </div>
             <div className="text-xs font-mono text-zinc-600">
-              {t.invoicePrint.chalanNo} {invoice.chalanNo} • {t.invoicePrint.date} 19 Oct 2026
+              {t.invoicePrint.chalanNo} {invoice.chalanNo}
+              {invoice.createdAt ? ` • ${t.invoicePrint.date} ${new Date(invoice.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}
             </div>
           </div>
         </div>
@@ -138,26 +141,34 @@ export function InvoicePrintClient({ invoice, agency }: InvoicePrintClientProps)
               {t.invoicePrint.billingInfo}
             </span>
             <div className="font-bold text-sm text-zinc-900">{invoice.customerName}</div>
-            <div className="text-zinc-600">Gabtoli Bus Terminal Workshop, Mirpur, Dhaka</div>
-            <div className="font-mono text-zinc-600">
-              Phone: {invoice.phone || '+880 1711-234567'}
-            </div>
+            {invoice.address && <div className="text-zinc-600">{invoice.address}</div>}
+            {invoice.phone && (
+              <div className="font-mono text-zinc-600">
+                Phone: {invoice.phone}
+              </div>
+            )}
           </div>
 
           <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-1.5">
             <span className="font-bold text-zinc-500 uppercase tracking-wider text-[10px]">
               {t.invoicePrint.logisticsInfo}
             </span>
-            <div className="font-semibold text-zinc-900">
-              {t.invoicePrint.carrierVehicle}{' '}
-              <span className="font-mono">{invoice.vehicleNumber || 'Counter Delivery'}</span>
-            </div>
-            <div className="text-zinc-600">
-              {t.invoicePrint.driver} {invoice.driverName || 'N/A'}
-            </div>
-            <div className="font-mono text-zinc-600">
-              {t.invoicePrint.paymentMode} {invoice.paymentMethod}
-            </div>
+            {invoice.vehicleNumber && (
+              <div className="font-semibold text-zinc-900">
+                {t.invoicePrint.carrierVehicle}{' '}
+                <span className="font-mono">{invoice.vehicleNumber}</span>
+              </div>
+            )}
+            {invoice.driverName && (
+              <div className="text-zinc-600">
+                {t.invoicePrint.driver} {invoice.driverName}
+              </div>
+            )}
+            {invoice.paymentMethod && (
+              <div className="font-mono text-zinc-600">
+                {t.invoicePrint.paymentMode} {invoice.paymentMethod}
+              </div>
+            )}
           </div>
         </div>
 
