@@ -65,6 +65,9 @@
     "@prisma/prisma7": {
       "prisma": "$prisma"
     },
+    "@prisma/config": {
+      "effect": "3.20.0"
+    },
     "effect": "4.0.0-rc.115"
   }
 }

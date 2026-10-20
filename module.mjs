@@ -1,7 +1,7 @@
 // @ts-check
 import { module } from "@prisma/composer";
 import { postgres, dataContract } from "@prisma/composer-prisma-cloud/orm";
-import lubriflowLubricantErpContractJson from "./src/prisma/contract.json" with { type: "json" };
+import lubriflowLubricantErpContractJson from "./src/prisma/generated/contract.json" with { type: "json" };
 import lubriflowLubricantErpService from "./service.mjs";
 
 export default module("lubriflow-lubricant-erp", ({ provision }) => {

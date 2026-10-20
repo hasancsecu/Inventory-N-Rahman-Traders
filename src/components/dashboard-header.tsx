@@ -225,20 +225,10 @@ export function DashboardHeader({
 
         {/* Right: Controls, Language Selector & User Profile */}
         <div className="flex items-center gap-1.5 sm:gap-3">
-          {/* Mobile Dealership Scope Pill Button */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="sm:hidden flex items-center gap-1 px-2 py-1 rounded-xl border border-zinc-200/90 dark:border-zinc-800 bg-zinc-100/90 dark:bg-zinc-900/90 text-[11px] font-bold font-mono text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors shrink-0"
-            title="Open dealership drawer"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-            <span className="truncate max-w-[65px]">
-              {currentAgency?.code || "ERP"}
-            </span>
-          </button>
-
-          {/* Bilingual Language Switcher (Bangla / English) */}
-          <LanguageToggle />
+          {/* Bilingual Language Switcher (Bangla / English) - Hidden on Mobile, available in Mobile Menu */}
+          <div className="hidden sm:flex items-center">
+            <LanguageToggle />
+          </div>
 
           {/* Theme Toggle */}
           <ThemeToggle />

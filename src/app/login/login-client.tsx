@@ -22,7 +22,6 @@ import {
 import { loginUser, quickLoginAs } from "@/actions/auth";
 import { AuthUser } from "@/lib/auth-types";
 import { useLanguage } from "@/context/language-context";
-import { LanguageToggle } from "@/components/language-toggle";
 
 interface LoginClientProps {
   currentUser: AuthUser | null;
@@ -116,8 +115,6 @@ export function LoginClient({
                 </p>
               </div>
             </div>
-
-            <LanguageToggle />
           </div>
 
           <div>
