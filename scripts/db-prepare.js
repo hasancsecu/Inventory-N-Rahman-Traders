@@ -54,12 +54,19 @@ async function prepareDatabase() {
     const maskedUrl = dbUrl.replace(/:([^:@]+)@/, ':****@')
     console.log(`🔌 [db-prepare] Connecting to PostgreSQL instance: ${maskedUrl}`)
 
-    console.log('📦 [db-prepare] Synchronizing database tables (prisma db push)...')
-    execSync('npx prisma db push --skip-generate --accept-data-loss', {
+    console.log('📦 [db-prepare] Synchronizing database tables (prisma7 db push)...')
+    execSync('npx prisma7 db push --accept-data-loss', {
       stdio: 'inherit',
       env: { ...process.env, DATABASE_URL: dbUrl },
     })
     console.log('✅ [db-prepare] Database tables and indexes synchronized successfully!')
+
+    console.log('📜 [db-prepare] Emitting Prisma 8 contract artifacts...')
+    execSync('npx prisma contract emit', {
+      stdio: 'inherit',
+      env: { ...process.env, DATABASE_URL: dbUrl },
+    })
+    console.log('✅ [db-prepare] Prisma 8 contract artifacts emitted successfully!')
 
     console.log('🌱 [db-prepare] Verifying Super Admin and System Roles (seed)...')
     execSync('npx tsx prisma/seed.ts', {

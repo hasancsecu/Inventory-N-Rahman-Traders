@@ -4,23 +4,25 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/db-prepare.js && prisma generate && next build",
+    "build": "node scripts/db-prepare.js && prisma7 generate && prisma contract emit && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma7 generate && prisma contract emit",
     "db:prepare": "node scripts/db-prepare.js",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed",
-    "db:studio": "prisma studio",
-    "prisma:generate": "prisma generate"
+    "db:push": "prisma7 db push",
+    "db:migrate": "prisma7 migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma7 studio",
+    "prisma:generate": "prisma7 generate",
+    "prisma:emit": "prisma contract emit"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "5.22.0",
-    "@prisma/client": "5.22.0",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "@prisma/orm-postgres": "^8.0.0-rc.18",
     "@types/pg": "^8.23.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -28,19 +30,20 @@
     "next": "16.4.2",
     "next-themes": "^0.4.6",
     "pg": "^8.23.1",
-    "prisma": "5.22.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@prisma/prisma7": "^7.10.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "prisma": "^8.0.0-rc.23",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"

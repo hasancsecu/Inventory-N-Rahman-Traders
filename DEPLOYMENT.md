@@ -1,6 +1,6 @@
 # 🚀 Vercel Deployment & Database Connection Guide
 **Project:** [inventory-n-rahman-traders](https://vercel.com/hasancsecus-projects/inventory-n-rahman-traders)  
-**Stack:** Next.js 16 (Turbopack) • Prisma ORM v5.22 • PostgreSQL (Neon / Supabase / Vercel Postgres)
+**Stack:** Next.js 16 (Turbopack) • Prisma ORM 8 (`prisma@latest` & `@prisma/orm-postgres`) • PostgreSQL (Neon / Supabase / Vercel Postgres / Prisma Postgres)
 
 ---
 

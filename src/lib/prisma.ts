@@ -38,7 +38,9 @@ function createPrismaClient(): PrismaClient {
         '⚠️ DATABASE_URL is not configured or using demo placeholder. Prisma will operate with in-memory fallback. Add a valid PostgreSQL connection string in Vercel Project Settings > Environment Variables.'
       )
     }
+    const fallbackAdapter = new PrismaPg({ connectionString: 'postgresql://postgres:postgres@127.0.0.1:5432/fallback' })
     return new PrismaClient({
+      adapter: fallbackAdapter,
       log: ['error'],
     })
   }
@@ -49,6 +51,7 @@ function createPrismaClient(): PrismaClient {
     connectionString.startsWith('prisma://')
   ) {
     return new PrismaClient({
+      accelerateUrl: connectionString,
       log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     })
   }
