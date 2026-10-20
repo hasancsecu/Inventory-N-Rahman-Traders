@@ -53,8 +53,7 @@ export function LoginClient({
           "error" in res && res.error ? res.error : (language === "bn" ? "লগইন ব্যর্থ হয়েছে। দয়া করে সঠিক তথ্য দিন।" : "Failed to authenticate."),
         );
       } else {
-        router.push("/");
-        router.refresh();
+        window.location.href = "/";
       }
     });
   };
@@ -66,8 +65,7 @@ export function LoginClient({
     startTransition(async () => {
       try {
         await quickLoginAs(userId);
-        router.push("/");
-        router.refresh();
+        window.location.href = "/";
       } catch (err: any) {
         setError(err?.message || (language === "bn" ? "লগইন ব্যর্থ হয়েছে" : "Login failed"));
       }

@@ -64,10 +64,17 @@ export function DashboardHeader({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close mobile drawer on route change
+  // Close mobile drawer and user menu on route change
   React.useEffect(() => {
     setMobileMenuOpen(false);
+    setUserDropdownOpen(false);
   }, [pathname]);
+
+  // Clean slate whenever authentication status changes (login / logout / user switch)
+  React.useEffect(() => {
+    setUserDropdownOpen(false);
+    setMobileMenuOpen(false);
+  }, [activeUser?.id, activeUser?.email]);
 
   const isSuperAdmin = activeUser
     ? activeUser.role === "SUPER_ADMIN" || activeUser.allowedAgencyIds.includes("*")
@@ -389,7 +396,11 @@ export function DashboardHeader({
                     </Link>
 
                     <button
-                      onClick={() => logoutUser()}
+                      onClick={async () => {
+                        setUserDropdownOpen(false);
+                        setMobileMenuOpen(false);
+                        await logoutUser();
+                      }}
                       className="w-full flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 font-medium cursor-pointer transition-colors"
                     >
                       <LogOut className="h-4 w-4" />
@@ -531,9 +542,10 @@ export function DashboardHeader({
                   </div>
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    setUserDropdownOpen(false);
                     setMobileMenuOpen(false);
-                    logoutUser();
+                    await logoutUser();
                   }}
                   className="p-2 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 shrink-0 cursor-pointer"
                   title="Sign Out"
@@ -733,9 +745,10 @@ export function DashboardHeader({
             {activeUser && (
               <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    setUserDropdownOpen(false);
                     setMobileMenuOpen(false);
-                    logoutUser();
+                    await logoutUser();
                   }}
                   className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/60 text-red-600 dark:text-red-400 text-xs font-bold border border-red-200 dark:border-red-900/60 transition-colors cursor-pointer min-h-[44px]"
                 >
