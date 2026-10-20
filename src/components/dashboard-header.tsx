@@ -23,7 +23,6 @@ import {
 import { AgencySwitcher } from "./agency-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
-import { ChangePasswordModal } from "./change-password-modal";
 import { AgencySummary } from "@/actions/agency";
 import { AuthUser, userHasPermission } from "@/lib/auth-types";
 import { logoutUser } from "@/actions/auth";
@@ -48,7 +47,6 @@ export function DashboardHeader({
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
-  const [passwordModalOpen, setPasswordModalOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement>(null);
   const { t, language } = useLanguage();
 
@@ -374,13 +372,10 @@ export function DashboardHeader({
                       </span>
                     </a>
 
-                    {/* Change Password Action for Authenticated User */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUserDropdownOpen(false);
-                        setPasswordModalOpen(true);
-                      }}
+                    {/* Change Password Link for Authenticated User */}
+                    <Link
+                      href="/change-password"
+                      onClick={() => setUserDropdownOpen(false)}
                       className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium transition-colors cursor-pointer text-xs"
                       id="change-password-menu-btn"
                     >
@@ -389,9 +384,9 @@ export function DashboardHeader({
                         <span>{t.header.changePassword}</span>
                       </div>
                       <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500">
-                        AUTH
+                        PAGE
                       </span>
-                    </button>
+                    </Link>
 
                     <button
                       onClick={() => logoutUser()}
@@ -547,13 +542,10 @@ export function DashboardHeader({
                 </button>
               </div>
 
-              {/* Mobile Drawer Change Password Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setPasswordModalOpen(true);
-                }}
+              {/* Mobile Drawer Change Password Link */}
+              <Link
+                href="/change-password"
+                onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-between p-3 rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/90 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-semibold cursor-pointer transition-colors shadow-xs"
               >
                 <div className="flex items-center gap-2.5">
@@ -565,7 +557,7 @@ export function DashboardHeader({
                 <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
                   EDIT →
                 </span>
-              </button>
+              </Link>
             </>
             ) : (
               <Link
@@ -759,15 +751,6 @@ export function DashboardHeader({
             )}
           </div>
         </>
-      )}
-      {/* Change Password Dialog Modal */}
-      {activeUser && (
-        <ChangePasswordModal
-          isOpen={passwordModalOpen}
-          onClose={() => setPasswordModalOpen(false)}
-          userEmail={activeUser.email}
-          userName={activeUser.name}
-        />
       )}
     </header>
   );
