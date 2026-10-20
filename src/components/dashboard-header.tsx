@@ -18,10 +18,12 @@ import {
   Calendar,
   Sparkles,
   Activity,
+  Lock,
 } from "lucide-react";
 import { AgencySwitcher } from "./agency-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
+import { ChangePasswordModal } from "./change-password-modal";
 import { AgencySummary } from "@/actions/agency";
 import { AuthUser, userHasPermission } from "@/lib/auth-types";
 import { logoutUser } from "@/actions/auth";
@@ -46,6 +48,7 @@ export function DashboardHeader({
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement>(null);
   const { t, language } = useLanguage();
 
@@ -371,6 +374,25 @@ export function DashboardHeader({
                       </span>
                     </a>
 
+                    {/* Change Password Action for Authenticated User */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        setPasswordModalOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium transition-colors cursor-pointer text-xs"
+                      id="change-password-menu-btn"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Lock className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                        <span>{t.header.changePassword}</span>
+                      </div>
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500">
+                        AUTH
+                      </span>
+                    </button>
+
                     <button
                       onClick={() => logoutUser()}
                       className="w-full flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 font-medium cursor-pointer transition-colors"
@@ -485,7 +507,8 @@ export function DashboardHeader({
 
             {/* User Profile Card */}
             {activeUser ? (
-              <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
+              <>
+                <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 rounded-xl bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-700 dark:text-zinc-300 shrink-0">
                     {activeUser.role === "SUPER_ADMIN" ? (
@@ -523,6 +546,27 @@ export function DashboardHeader({
                   <LogOut className="h-4 w-4" />
                 </button>
               </div>
+
+              {/* Mobile Drawer Change Password Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setPasswordModalOpen(true);
+                }}
+                className="w-full flex items-center justify-between p-3 rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/90 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-semibold cursor-pointer transition-colors shadow-xs"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                    <Lock className="h-3.5 w-3.5" />
+                  </div>
+                  <span>{t.header.changePassword}</span>
+                </div>
+                <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
+                  EDIT →
+                </span>
+              </button>
+            </>
             ) : (
               <Link
                 href="/login"
@@ -715,6 +759,15 @@ export function DashboardHeader({
             )}
           </div>
         </>
+      )}
+      {/* Change Password Dialog Modal */}
+      {activeUser && (
+        <ChangePasswordModal
+          isOpen={passwordModalOpen}
+          onClose={() => setPasswordModalOpen(false)}
+          userEmail={activeUser.email}
+          userName={activeUser.name}
+        />
       )}
     </header>
   );

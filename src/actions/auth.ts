@@ -208,3 +208,123 @@ export async function logoutUser() {
   revalidatePath('/', 'layout')
   redirect('/login')
 }
+
+export interface ChangePasswordResult {
+  success: boolean
+  error?: string
+  message?: string
+}
+
+/**
+ * Self-service password change for any authenticated user
+ * Validates current password, enforces minimum length on new password,
+ * and ensures confirm password matches.
+ */
+export async function changeUserPassword(formData: {
+  currentPassword?: string
+  newPassword?: string
+  confirmPassword?: string
+}): Promise<ChangePasswordResult> {
+  const { getCurrentUser } = await import('@/lib/auth')
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser) {
+    return {
+      success: false,
+      error: 'অনুগ্রহ করে প্রথমে লগইন করুন (Please log in first).',
+    }
+  }
+
+  const currentPassword = formData.currentPassword || ''
+  const newPassword = (formData.newPassword || '').trim()
+  const confirmPassword = (formData.confirmPassword || '').trim()
+
+  if (!newPassword) {
+    return {
+      success: false,
+      error: 'নতুন পাসওয়ার্ড প্রদান আবশ্যক (New password is required).',
+    }
+  }
+
+  if (newPassword.length < 6) {
+    return {
+      success: false,
+      error: 'নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে (Password must be at least 6 characters).',
+    }
+  }
+
+  if (newPassword !== confirmPassword) {
+    return {
+      success: false,
+      error: 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মিলছে না (Passwords do not match).',
+    }
+  }
+
+  // 1. Fetch current password hash from database or local fallback
+  let existingHash: string | null = null
+
+  try {
+    const userInDb = await prisma.user.findUnique({
+      where: { id: currentUser.id },
+      select: { id: true, passwordHash: true },
+    })
+    if (userInDb && userInDb.passwordHash) {
+      existingHash = userInDb.passwordHash
+    }
+  } catch (err: any) {
+    console.warn('Prisma check password hash error:', err?.message)
+  }
+
+  if (!existingHash) {
+    const fallbackUser = await getDbUserById(currentUser.id)
+    if (fallbackUser?.passwordHash) {
+      existingHash = fallbackUser.passwordHash
+    }
+  }
+
+  // 2. If the user currently has a password hash set, verify currentPassword
+  if (existingHash) {
+    if (!currentPassword) {
+      return {
+        success: false,
+        error: 'বর্তমান পাসওয়ার্ড প্রদান আবশ্যক (Current password is required).',
+      }
+    }
+
+    const isCurrentValid = await verifyPassword(currentPassword, existingHash)
+    if (!isCurrentValid) {
+      return {
+        success: false,
+        error: 'বর্তমান পাসওয়ার্ড সঠিক নয় (Current password is incorrect).',
+      }
+    }
+  }
+
+  // 3. Hash the new password using PBKDF2
+  const newHash = await hashPassword(newPassword)
+
+  // 4. Update in Prisma DB if reachable
+  try {
+    await prisma.user.update({
+      where: { id: currentUser.id },
+      data: { passwordHash: newHash },
+    })
+  } catch (err: any) {
+    console.warn('Prisma update password failed, saving to local store:', err?.message)
+  }
+
+  // 5. Update in local store fallback
+  const { saveStoredUser } = await import('@/lib/backend-store')
+  const storedUser = await getDbUserById(currentUser.id)
+  if (storedUser) {
+    storedUser.passwordHash = newHash
+    saveStoredUser(storedUser)
+  }
+
+  revalidatePath('/', 'layout')
+  return {
+    success: true,
+    message: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে (Password changed successfully).',
+  }
+}
+

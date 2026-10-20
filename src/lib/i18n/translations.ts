@@ -151,6 +151,7 @@ export const translations = {
       multiAgency: 'মাল্টি-এজেন্সি একত্রিত রূপ',
       agencyCode: 'কোড',
       toggleTheme: 'থিম পরিবর্তন',
+      changePassword: 'পাসওয়ার্ড পরিবর্তন',
     },
 
     // ড্যাশবোর্ড (Dashboard)
@@ -555,6 +556,30 @@ export const translations = {
       roleCashier: 'ক্যাশিয়ার (পিওএস ও আদায়)',
       securityNote: 'বাংলাদেশি ডিলারশিপ আইনের আলোকে ডেটা সম্পূর্ণ সুরক্ষিত।',
     },
+
+    // পাসওয়ার্ড পরিবর্তন (Password Change)
+    passwordChange: {
+      title: 'পাসওয়ার্ড পরিবর্তন',
+      desc: 'আপনার অ্যাকাউন্ট সুরক্ষিত রাখতে বর্তমান ও নতুন পাসওয়ার্ড প্রদান করুন।',
+      currentPassword: 'বর্তমান পাসওয়ার্ড',
+      currentPasswordPlaceholder: 'বর্তমান পাসওয়ার্ড দিন',
+      newPassword: 'নতুন পাসওয়ার্ড',
+      newPasswordPlaceholder: 'কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড',
+      confirmPassword: 'নতুন পাসওয়ার্ড নিশ্চিতকরণ',
+      confirmPasswordPlaceholder: 'নতুন পাসওয়ার্ড পুনরায় লিখুন',
+      submitBtn: 'পাসওয়ার্ড পরিবর্তন করুন',
+      submitting: 'পরিবর্তন হচ্ছে...',
+      success: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!',
+      mismatch: 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।',
+      minLength: 'নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।',
+      currentRequired: 'বর্তমান পাসওয়ার্ড প্রদান আবশ্যক।',
+      cancel: 'বাতিল',
+      strengthWeak: 'দুর্বল (কমপক্ষে ৬ অক্ষর আবশ্যক)',
+      strengthGood: 'গ্রহণযোগ্য পাসওয়ার্ড',
+      strengthStrong: 'শক্তিশালী পাসওয়ার্ড',
+      matchValid: 'পাসওয়ার্ড মিলেছে',
+      matchInvalid: 'পাসওয়ার্ড মেলেনি',
+    },
   },
 
   en: {
@@ -670,6 +695,7 @@ export const translations = {
       multiAgency: 'Multi-Agency Consolidated',
       agencyCode: 'Code',
       toggleTheme: 'Toggle theme',
+      changePassword: 'Change Password',
     },
 
     // Dashboard
@@ -1072,6 +1098,30 @@ export const translations = {
       roleStorekeeper: 'Storekeeper (Inventory & Receiving)',
       roleCashier: 'Cashier (POS & Khata Collections)',
       securityNote: 'Compliant with Bangladesh commercial dealership isolation standards.',
+    },
+
+    // Password Change
+    passwordChange: {
+      title: 'Change Password',
+      desc: 'Enter your current password and set a new password to keep your account secure.',
+      currentPassword: 'Current Password',
+      currentPasswordPlaceholder: 'Enter current password',
+      newPassword: 'New Password',
+      newPasswordPlaceholder: 'At least 6 characters',
+      confirmPassword: 'Confirm New Password',
+      confirmPasswordPlaceholder: 'Re-enter new password',
+      submitBtn: 'Update Password',
+      submitting: 'Updating...',
+      success: 'Password changed successfully!',
+      mismatch: 'New password and confirmation password do not match.',
+      minLength: 'New password must be at least 6 characters long.',
+      currentRequired: 'Current password is required.',
+      cancel: 'Cancel',
+      strengthWeak: 'Weak (min 6 chars)',
+      strengthGood: 'Good',
+      strengthStrong: 'Strong password',
+      matchValid: 'Passwords match',
+      matchInvalid: 'Passwords do not match',
     },
   },
 } as const;
