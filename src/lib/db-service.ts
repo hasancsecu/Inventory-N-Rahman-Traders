@@ -77,8 +77,15 @@ import { ApplicationSegment, UnitOfMeasure, UserRole, POStatus, PaymentMethod } 
  * Checks whether DATABASE_URL is configured and not a placeholder.
  */
 export function isPostgresConfigured(): boolean {
-  const url = process.env.DATABASE_URL
-  return Boolean(url && !url.includes('demo_secret') && !url.includes('example.com'))
+  const url =
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL
+  return Boolean(
+    url &&
+      !url.includes('demo_secret') &&
+      !url.includes('example.com')
+  )
 }
 
 // -----------------------------------------------------------------------------

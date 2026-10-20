@@ -21,20 +21,32 @@ declare global {
   var pgPoolGlobal: Pool | undefined
 }
 
-function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL
+function getEffectiveConnectionString(): string | undefined {
+  return (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL
+  )
+}
 
-  if (!connectionString) {
-    console.warn(
-      '⚠️ DATABASE_URL is not set. PrismaClient initialized with default settings.'
-    )
+function createPrismaClient(): PrismaClient {
+  const connectionString = getEffectiveConnectionString()
+
+  if (!connectionString || connectionString.includes('demo_secret') || connectionString.includes('example.com')) {
+    if (process.env.NODE_ENV === 'production') {
+      console.warn(
+        '⚠️ DATABASE_URL is not configured or using demo placeholder. Prisma will operate with in-memory fallback. Add a valid PostgreSQL connection string in Vercel Project Settings > Environment Variables.'
+      )
+    }
     return new PrismaClient({
-      log:
-        process.env.NODE_ENV === 'development'
-          ? ['query', 'error', 'warn']
-          : ['error'],
+      log: ['error'],
     })
   }
+
+  // Cloud databases (Neon, Supabase, Vercel Postgres, AWS) require SSL
+  const isLocal =
+    connectionString.includes('localhost') ||
+    connectionString.includes('127.0.0.1')
 
   // Configure pg.Pool with serverless pool size constraints
   const pool =
@@ -44,14 +56,10 @@ function createPrismaClient(): PrismaClient {
       max: process.env.NODE_ENV === 'production' ? 10 : 5, // Serverless safe connection pool limit
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
-      ssl: connectionString.includes('sslmode=require')
-        ? { rejectUnauthorized: false }
-        : undefined,
+      ssl: isLocal ? undefined : { rejectUnauthorized: false },
     })
 
-  if (process.env.NODE_ENV !== 'production') {
-    globalThis.pgPoolGlobal = pool
-  }
+  globalThis.pgPoolGlobal = pool
 
   // Use Prisma Driver Adapter for pgBouncer connection pooling compatibility
   const adapter = new PrismaPg(pool)
@@ -66,9 +74,7 @@ function createPrismaClient(): PrismaClient {
 }
 
 export const prisma = globalThis.prismaGlobal ?? createPrismaClient()
-
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.prismaGlobal = prisma
-}
+globalThis.prismaGlobal = prisma
 
 export default prisma
+

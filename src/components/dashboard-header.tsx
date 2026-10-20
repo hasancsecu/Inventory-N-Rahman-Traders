@@ -17,6 +17,7 @@ import {
   Building2,
   Calendar,
   Sparkles,
+  Activity,
 } from "lucide-react";
 import { AgencySwitcher } from "./agency-switcher";
 import { ThemeToggle } from "./theme-toggle";
@@ -363,6 +364,22 @@ export function DashboardHeader({
                         </span>
                       </Link>
                     )}
+
+                    <a
+                      href="/api/health/db"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-medium transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Activity className="h-4 w-4 text-emerald-500" />
+                        <span>{language === 'bn' ? 'ডাটাবেজ সংযোগ স্থিতি' : 'Database Status'}</span>
+                      </div>
+                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
+                        HEALTH
+                      </span>
+                    </a>
 
                     <button
                       onClick={() => logoutUser()}
